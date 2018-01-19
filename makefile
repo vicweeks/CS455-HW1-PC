@@ -1,20 +1,28 @@
+# Makefile for CS455 HW1-PC
+
+PACKAGE = cs455/overlay/
+NODE = $(PACKAGE)node/
+WIREFORMATS = $(PACKAGE)wireformats/
+
 JFLAGS = -g
 JC = javac
+JVM = java
 .SUFFIXES: .java .class
 .java.class:
-        $(JC) $(JFLAGS) $*.java
+	$(JC) $(JFLAGS) $*.java
 
 CLASSES = \
-        Foo.java \
-        Blah.java \
-        Library.java \
-        Main.java 
+	$(NODE)Registry.java \
+	$(NODE)MessagingNode.java \
+	$(WIREFORMATS)Protocol.java
 
 default: classes
 
-all: classes
+all: 
 
 classes: $(CLASSES:.java=.class)
 
 clean:
-        $(RM) *.class
+	$(RM) $(NODE)*.class
+	$(RM) $(WIREFORMATS)*.class
+	$(RM) *.class
