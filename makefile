@@ -12,27 +12,25 @@ JVM = java
 
 SRC = ./
 
-JFLAGS = -g 
+JFLAGS = -g
 
 .SUFFIXES: .java .class
+
 .java.class:
 	$(JC) $(JFLAGS) $*.java
 
-CLASSES = \
-	$(NODE)Registry.java \
-	$(NODE)MessagingNode.java \
-	$(WIREFORMATS)Protocol.java
+EMPTY = 
 
-default: classes
+PACKAGEDIRS = $(addprefix $(SRC), $(PACKAGES))
+PACKAGEFILES = $(subst $(SRC), $(EMPTY), $(foreach DIR, $(PACKAGEDIRS), $(wildcard $(DIR)/*.java)))
+#PACKAGEFILES = $(foreach DIR, $(PACKAGES), $(wildcard $(DIR)/*.java))
 
-all: classes
+default: class_files
 
-classes: $(CLASSES:.java=.class)
+all: class_files
+
+class_files: $(PACKAGEFILES:.java=.class)
 
 clean:
-	$(RM) $(NODE)*.class
-	$(RM) $(WIREFORMATS)*.class
-	$(RM) $(ROUTING)*.class
-	$(RM) $(UTIL)*.class
-	$(RM) $(TRANSPORT)*.class
+	$(foreach DIR, $(PACKAGEDIRS), $(RM) $(DIR)/*.class)
 

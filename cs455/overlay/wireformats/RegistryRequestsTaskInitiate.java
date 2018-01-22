@@ -1,5 +1,5 @@
 package cs455.overlay.wireformats;
 
-public clas RegistryReportsTaskInitiate {
+public class RegistryRequestsTaskInitiate {
 
 }
