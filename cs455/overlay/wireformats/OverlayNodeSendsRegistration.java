@@ -1,5 +1,7 @@
 package cs455.overlay.wireformats;
 
-public class OverlayNodeSendsRegistration {
+public class OverlayNodeSendsRegistration implements Event {
 
+    type = 2;
+    
 }
