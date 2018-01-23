@@ -1,10 +1,10 @@
 package cs455.overlay.node;
 
-import cs455.overlay.wireformats.Protocol;
+import cs455.overlay.wireformats.*;
 import java.net.*;
 import java.io.*;
 
-public class MessagingNode {
+public class MessagingNode implements Node {
     // TODO
     
     // test communication

@@ -1,17 +1,16 @@
 package cs455.overlay.node;
 
-import cs455.overlay.wireformats.Protocol;
+import cs455.overlay.wireformats.*;
 import java.net.*;
 import java.io.*;
 
-public class Registry {
+public class Registry implements Node {
     // TODO
 
-    // test communication
     public static void main(String[] args) throws IOException {
         
         if (args.length != 1) {
-            System.err.println("Usage: java KnockKnockServer <port number>");
+            System.err.println("Usage: java cs455.overlay.node.Registry <port number>");
             System.exit(1);
         }
 

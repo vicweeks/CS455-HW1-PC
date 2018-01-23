@@ -2,6 +2,14 @@ package cs455.overlay.wireformats;
 
 public class OverlayNodeSendsRegistration implements Event {
 
-    type = 2;
+    private int type = 2;
+
+    public void getType() {
+
+    }
+
+    public void getBytes() {
+
+    }
     
 }
