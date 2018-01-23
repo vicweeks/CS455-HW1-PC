@@ -1,20 +1,36 @@
-JFLAGS = -g
+# Makefile for CS455 HW1-PC
+
+PACKAGES = \
+	cs455/overlay/node \
+	cs455/overlay/routing \
+	cs455/overlay/transport \
+	cs455/overlay/util \
+	cs455/overlay/wireformats
+
 JC = javac
+JVM = java
+
+SRC = ./
+
+JFLAGS = -g
+
 .SUFFIXES: .java .class
+
 .java.class:
-        $(JC) $(JFLAGS) $*.java
+	$(JC) $(JFLAGS) $*.java
 
-CLASSES = \
-        Foo.java \
-        Blah.java \
-        Library.java \
-        Main.java 
+EMPTY = 
 
-default: classes
+PACKAGEDIRS = $(addprefix $(SRC), $(PACKAGES))
+PACKAGEFILES = $(subst $(SRC), $(EMPTY), $(foreach DIR, $(PACKAGEDIRS), $(wildcard $(DIR)/*.java)))
+#PACKAGEFILES = $(foreach DIR, $(PACKAGES), $(wildcard $(DIR)/*.java))
 
-all: classes
+default: class_files
 
-classes: $(CLASSES:.java=.class)
+all: class_files
+
+class_files: $(PACKAGEFILES:.java=.class)
 
 clean:
-        $(RM) *.class
+	$(foreach DIR, $(PACKAGEDIRS), $(RM) $(DIR)/*.class)
+
