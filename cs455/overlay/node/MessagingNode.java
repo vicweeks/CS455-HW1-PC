@@ -1,54 +1,64 @@
 package cs455.overlay.node;
 
 import cs455.overlay.wireformats.*;
+import cs455.overlay.transport.*;
 import java.net.*;
 import java.io.*;
 
 public class MessagingNode implements Node {
-    // TODO
+
+    private TCPConnection registryConnection;
+    private byte[] ipAddress;
+    private int localPortNumber;
     
-    // test communication
+    public void onEvent(Event event) {
+
+    }
+    
     public static void main(String[] args) throws IOException {
-        
+
+	MessagingNode messagingNode = new MessagingNode();
+	
         if (args.length != 2) {
             System.err.println(
-                "Usage: java EchoClient <host name> <port number>");
+                "Usage: java cs455.overlay.node.MessagingNode <host name> <port number>");
             System.exit(1);
         }
 
         String hostName = args[0];
-        int portNumber = Integer.parseInt(args[1]);
+        int registryPortNumber = Integer.parseInt(args[1]);
 
-        try (
-            Socket kkSocket = new Socket(hostName, portNumber);
-            PrintWriter out = new PrintWriter(kkSocket.getOutputStream(), true);
-            BufferedReader in = new BufferedReader(
-                new InputStreamReader(kkSocket.getInputStream()));
-        ) {
-            BufferedReader stdIn =
-                new BufferedReader(new InputStreamReader(System.in));
-            String fromServer;
-            String fromUser;
+	messagingNode.setUpServerThread();
 
-            while ((fromServer = in.readLine()) != null) {
-                System.out.println("Server: " + fromServer);
-                if (fromServer.equals("Bye."))
-                    break;
-                
-                fromUser = stdIn.readLine();
-                if (fromUser != null) {
-                    System.out.println("Client: " + fromUser);
-                    out.println(fromUser);
-                }
-            }
-        } catch (UnknownHostException e) {
-            System.err.println("Don't know about host " + hostName);
-            System.exit(1);
-        } catch (IOException e) {
-            System.err.println("Couldn't get I/O for the connection to " +
-                hostName);
-            System.exit(1);
-        }
+	byte[] registerMessageBytes = messagingNode.createRegistrationMessage();
+	
+	messagingNode.connectToRegistry(hostName, registryPortNumber);
+	
+	messagingNode.registryConnection.sendMessage(registerMessageBytes);
+	
+    }
+
+    public void setUpServerThread() {
+	TCPServerThread serverThread = new TCPServerThread(0);
+	localPortNumber = serverThread.getPortNumber();
+	serverThread.start();
+    }
+    
+    public byte[] createRegistrationMessage() throws IOException {
+	try {
+	    InetAddress localHost = InetAddress.getLocalHost();
+	    ipAddress = localHost.getAddress();
+	} catch (UnknownHostException e) {
+	    System.out.println(e.getMessage());
+	    System.exit(1);
+	}
+	OverlayNodeSendsRegistration registerMessage = new OverlayNodeSendsRegistration(ipAddress, localPortNumber);
+	return registerMessage.getBytes();
+    }
+    
+    public void connectToRegistry(String hostName, int portNumber) throws UnknownHostException, IOException {
+	Socket registrySocket = new Socket(hostName, portNumber);
+	registryConnection = new TCPConnection(registrySocket);
     }
     
 }

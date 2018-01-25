@@ -1,9 +1,10 @@
 package cs455.overlay.transport;
 
+import cs455.overlay.wireformats.*;
 import java.net.*;
 import java.io.*;
 
-public class TCPReceiver {
+public class TCPReceiver extends Thread {
 
     private Socket socket;
     private DataInputStream din;
@@ -16,10 +17,16 @@ public class TCPReceiver {
     public void run() {
 	int dataLength;
 	while (socket != null) {
-	    try {
+	    try {        
 		dataLength = din.readInt();
+		
 		byte[] data = new byte[dataLength];
 		din.readFully(data, 0, dataLength);
+
+		EventFactory eventFactory = EventFactory.getInstance();
+		Event receivedEvent = eventFactory.constructEvent(data);
+		System.out.println("Message Type: " + receivedEvent.getType());
+		
 	    } catch (SocketException se) {
 		System.out.println(se.getMessage());
 		break;

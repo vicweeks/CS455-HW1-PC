@@ -1,9 +1,11 @@
 package cs455.overlay.wireformats;
 
+import java.io.*;
+
 public interface Event {
     
-    public void getType();
+    public int getType();
 
-    public void getBytes();
+    public byte[] getBytes() throws IOException;
     
 }
