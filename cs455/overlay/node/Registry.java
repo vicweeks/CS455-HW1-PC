@@ -12,7 +12,9 @@ public class Registry implements Node {
     }
     
     public static void main(String[] args) throws IOException {
-        
+
+	Registry registry = new Registry();
+	
         if (args.length != 1) {
             System.err.println("Usage: java cs455.overlay.node.Registry <port number>");
             System.exit(1);
@@ -20,9 +22,13 @@ public class Registry implements Node {
 
         int portNumber = Integer.parseInt(args[0]);
 
+	registry.setUpServerThread(portNumber);
+	     
+    }
+
+    public void setUpServerThread(int portNumber) {
 	TCPServerThread serverThread = new TCPServerThread(portNumber);
 	serverThread.start();
-	     
     }
     
 }

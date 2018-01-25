@@ -19,5 +19,9 @@ public class TCPConnection {
 	    System.out.println(ioe.getMessage());
 	}
     }
+
+    public void sendMessage(byte[] dataToSend) throws IOException {
+	senderThread.sendData(dataToSend);
+    }
     
 }
