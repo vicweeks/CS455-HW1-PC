@@ -26,6 +26,14 @@ public class OverlayNodeSendsRegistration implements Event {
 	return type;
     }
 
+    public byte[] getIPAddress() {
+	return ipAddress;
+    }
+
+    public int getPortNumber() {
+	return portNumber;
+    }
+
     public byte[] getBytes() throws IOException {
 	byte[] marshalledBytes = null;
 	ByteArrayOutputStream baOutputStream = new ByteArrayOutputStream();

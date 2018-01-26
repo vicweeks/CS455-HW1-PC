@@ -28,18 +28,18 @@ public class MessagingNode implements Node {
         String hostName = args[0];
         int registryPortNumber = Integer.parseInt(args[1]);
 
-	messagingNode.setUpServerThread();
+	messagingNode.setUpServerThread(messagingNode);
 
 	byte[] registerMessageBytes = messagingNode.createRegistrationMessage();
 	
-	messagingNode.connectToRegistry(hostName, registryPortNumber);
+	messagingNode.connectToRegistry(messagingNode, hostName, registryPortNumber);
 	
 	messagingNode.registryConnection.sendMessage(registerMessageBytes);
 	
     }
 
-    public void setUpServerThread() {
-	TCPServerThread serverThread = new TCPServerThread(0);
+    public void setUpServerThread(Node messagingNode) {
+	TCPServerThread serverThread = new TCPServerThread(messagingNode, 0);
 	localPortNumber = serverThread.getPortNumber();
 	serverThread.start();
     }
@@ -56,9 +56,9 @@ public class MessagingNode implements Node {
 	return registerMessage.getBytes();
     }
     
-    public void connectToRegistry(String hostName, int portNumber) throws UnknownHostException, IOException {
-	Socket registrySocket = new Socket(hostName, portNumber);
-	registryConnection = new TCPConnection(registrySocket);
+    public void connectToRegistry(Node messagingNode, String hostName, int portNumber) throws UnknownHostException, IOException {
+	Socket registrySocket = new Socket(hostName, portNumber);	
+	registryConnection = new TCPConnection(messagingNode, registrySocket);
     }
     
 }
