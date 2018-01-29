@@ -1,17 +1,23 @@
 package cs455.overlay.transport;
 
-import java.util.ArrayList;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 public class TCPConnectionsCache {
 
-    private ArrayList<TCPConnection> connections;
+    private SortedMap<Integer, TCPConnection> connections;
     
     public TCPConnectionsCache() {
-	connections = new ArrayList<TCPConnection>();
+	connections = new TreeMap<Integer, TCPConnection>();
     }
 
-    public void addConnection(TCPConnection incomingConnection) {
-	connections.add(incomingConnection);
+    public void addConnection(int nodeID, TCPConnection incomingConnection) {
+	connections.put(new Integer(nodeID), incomingConnection);
+    }
+
+    public SortedMap<Integer, TCPConnection> getConnections() {
+	return connections;
     }
     
 }

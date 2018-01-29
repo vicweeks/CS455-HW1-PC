@@ -5,14 +5,16 @@ import cs455.overlay.node.*;
 import java.net.*;
 import java.io.*;
 
-public class TCPReceiver extends Thread {
+public class TCPReceiver implements Runnable {
 
     private Node node;
+    private TCPConnection self;
     private Socket socket;
     private DataInputStream din;
 
-    public TCPReceiver(Node node, Socket socket) throws IOException {
+    public TCPReceiver(Node node, TCPConnection self, Socket socket) throws IOException {
 	this.node = node;
+	this.self = self;
 	this.socket = socket;
 	din = new DataInputStream(socket.getInputStream());
     }
@@ -28,7 +30,7 @@ public class TCPReceiver extends Thread {
 
 		EventFactory eventFactory = EventFactory.getInstance();
 		Event receivedEvent = eventFactory.constructEvent(data);
-		node.onEvent(receivedEvent);
+		node.onEvent(self, receivedEvent);
 		
 	    } catch (SocketException se) {
 		System.out.println(se.getMessage());

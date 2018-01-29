@@ -8,23 +8,33 @@ public class TCPConnection {
 
     //Identifier info for cache
     private InetAddress remoteIP;
+    private InetAddress localIP;
     private int remotePort;
-    
+    private TCPConnection self;
     private Node node;
     private Socket socket;
-    private TCPReceiver receiverThread;
-    private TCPSender senderThread;
+    private TCPReceiver receiver;
+    private TCPSender sender;
+    private Thread receiverThread;
+    // private Thread senderThread;
     
     public TCPConnection(Node node, Socket socket) {
 	this.node = node;
 	this.socket = socket;
 	remoteIP = socket.getInetAddress();
+	localIP = socket.getLocalAddress();
 	remotePort = socket.getPort();
+    }
 
+    public void setUpConnection(TCPConnection self) {
+	this.self = self;
 	try {
-	    this.receiverThread = new TCPReceiver(node, socket);
-	    this.senderThread = new TCPSender(socket);
+	    this.receiver = new TCPReceiver(node, self, socket);
+	    this.sender = new TCPSender(socket);
+	    receiverThread = new Thread(receiver);
+	    //senderThread = new Thread(sender);
 	    receiverThread.start();
+	    //senderThread.start();
         } catch (SocketException se) {
 	    System.out.println(se.getMessage());
 	} catch (IOException ioe) {
@@ -32,8 +42,25 @@ public class TCPConnection {
 	}
     }
     
-    public void sendMessage(byte[] dataToSend) throws IOException {
-	senderThread.sendData(dataToSend);
+    public void sendMessage(byte[] dataToSend) {
+	try {
+	    sender.sendData(dataToSend);
+	} catch (IOException e) {
+	    System.out.println("Failed to send message");
+	    System.out.println(e.getMessage());
+	}
+    }
+
+    public byte[] getRemoteIP() {
+	return remoteIP.getAddress();
+    }
+
+    public InetAddress getLocalIP() {
+	return localIP;
+    }
+    
+    public int getRemotePort() {
+	return remotePort;
     }
     
 }

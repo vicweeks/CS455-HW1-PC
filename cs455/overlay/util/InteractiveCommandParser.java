@@ -2,7 +2,7 @@ package cs455.overlay.util;
 
 import java.io.*;
 
-public class InteractiveCommandParser extends Thread {
+public class InteractiveCommandParser implements Runnable {
 
     public InteractiveCommandParser() {
 
