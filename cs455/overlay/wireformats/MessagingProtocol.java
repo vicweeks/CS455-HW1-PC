@@ -18,6 +18,18 @@ public class MessagingProtocol {
 	routingTable = new RoutingTable();
     }
 
+    // Command: print-counters-and-diagnostics
+    public void printDiagnostics() {
+	// TODO
+	System.out.println("This command will print info about messages this node has processed.");
+    }
+    
+    // Command: exit-overlay
+    public void exitOverlay() {
+	// TODO
+	System.out.println("This command will cause the node to leave the overlay.");
+    }
+	    
     public void onEvent(TCPConnection connection, Event event) {
 	int eventType = event.getType();
 	switch(eventType)
@@ -49,11 +61,7 @@ public class MessagingProtocol {
     }
     
     public void sendMessage(TCPConnection connection, byte[] message) {
-	try {
-	    connection.sendMessage(message);
-	} catch (IOException e) {
-	    System.out.println("Failed to send message");
-	}
+	connection.sendMessage(message);
     }
     
 }

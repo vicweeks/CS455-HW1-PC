@@ -51,8 +51,8 @@ public class TCPConnection {
 	}
     }
 
-    public byte[] getRemoteIP() {
-	return remoteIP.getAddress();
+    public InetAddress getRemoteIP() {
+	return remoteIP;
     }
 
     public InetAddress getLocalIP() {

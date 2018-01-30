@@ -1,12 +1,14 @@
 package cs455.overlay.routing;
 
+import java.net.*;
+
 public class RoutingEntry {
 
     private int nodeID;
-    private byte[] ipAddress;
+    private InetAddress ipAddress;
     private int portNumber;
 
-    public RoutingEntry(int nodeID, byte[] ipAddress, int portNumber) {
+    public RoutingEntry(int nodeID, InetAddress ipAddress, int portNumber) {
 	this.nodeID = nodeID;
 	this.ipAddress = ipAddress;
 	this.portNumber = portNumber;
@@ -16,7 +18,7 @@ public class RoutingEntry {
 	return this.nodeID;
     }
 
-    public byte[] getIPAddress() {
+    public InetAddress getIPAddress() {
 	return this.ipAddress;
     }
 

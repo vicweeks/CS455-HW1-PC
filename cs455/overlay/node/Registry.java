@@ -18,7 +18,7 @@ public class Registry implements Node {
     
     public static void main(String[] args) throws IOException {
 
-	Registry registry = new Registry();
+	Registry r = new Registry();
 	
         if (args.length != 1) {
             System.err.println("Usage: java cs455.overlay.node.Registry <port number>");
@@ -27,14 +27,14 @@ public class Registry implements Node {
 
         int portNumber = Integer.parseInt(args[0]);
 
-	registry.protocol = new RegistryProtocol();
+	r.protocol = new RegistryProtocol();
 	
-	registry.setUpServerThread(registry, portNumber);
+	r.setUpServerThread(r, portNumber);
 	
 	System.out.println("Registry has been started.");
 	
 	//listen for commands
-	registry.runtimeCommands();
+	r.runtimeCommands(r.protocol);
 	     
     }
 
@@ -44,8 +44,8 @@ public class Registry implements Node {
 	serverThread.start();
     }
 
-    public void runtimeCommands() {
-	InteractiveCommandParser icp = new InteractiveCommandParser();
+    public void runtimeCommands(RegistryProtocol protocol) {
+	InteractiveCommandParser icp = new InteractiveCommandParser(true, protocol);
 	Thread icpThread = new Thread(icp);
 	icpThread.start();
     }

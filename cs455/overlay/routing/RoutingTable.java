@@ -1,6 +1,7 @@
 package cs455.overlay.routing;
 
 import java.util.ArrayList;
+import java.net.*;
 
 public class RoutingTable {
 
@@ -46,7 +47,7 @@ public class RoutingTable {
 	return connectedNodes;
     }
     
-    public void addEntry(int nodeID, byte[] ipAddress, int portNumber) {
+    public void addEntry(int nodeID, InetAddress ipAddress, int portNumber) {
 	numberOfNodes += 1;
 	allNodeIDs.add(nodeID);
 	connectedNodes.add(new RoutingEntry(nodeID, ipAddress, portNumber));
