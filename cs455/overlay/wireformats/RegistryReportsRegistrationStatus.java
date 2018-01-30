@@ -11,6 +11,7 @@ public class RegistryReportsRegistrationStatus implements Event {
     private String infoString;
 
     public RegistryReportsRegistrationStatus(DataInputStream din) throws IOException {
+	// for receiving
 	status = din.readInt();
 	infoLength = din.readInt();
 	infoStringBytes = new byte[infoLength];
@@ -19,6 +20,7 @@ public class RegistryReportsRegistrationStatus implements Event {
     }
 
     public RegistryReportsRegistrationStatus(int status, String infoString) {
+	// for sending
 	this.status = status;
 	this.infoString = infoString;
 	infoStringBytes = infoString.getBytes();

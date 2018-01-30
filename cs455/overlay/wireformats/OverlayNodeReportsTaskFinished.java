@@ -4,8 +4,10 @@ import java.io.*;
 
 public class OverlayNodeReportsTaskFinished implements Event {
 
+    private int type = 10;
+    
     public int getType() {
-	return -1;
+	return type;
     }
 
     public byte[] getBytes() throws IOException {

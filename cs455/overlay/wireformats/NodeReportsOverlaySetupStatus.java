@@ -4,8 +4,10 @@ import java.io.*;
 
 public class NodeReportsOverlaySetupStatus implements Event {
 
+    private int type = 7;
+    
     public int getType() {
-	return -1;
+	return type;
     }
 
     public byte[] getBytes() throws IOException {

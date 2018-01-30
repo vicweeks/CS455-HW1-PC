@@ -3,7 +3,6 @@ package cs455.overlay.node;
 import cs455.overlay.wireformats.*;
 import cs455.overlay.transport.*;
 import cs455.overlay.util.*;
-import cs455.overlay.routing.*;
 import java.net.*;
 import java.io.*;
 import java.util.ArrayList;
@@ -30,10 +29,8 @@ public class Registry implements Node {
 	r.protocol = new RegistryProtocol();
 	
 	r.setUpServerThread(r, portNumber);
-	
-	System.out.println("Registry has been started.");
-	
-	//listen for commands
+		
+	// listen for commands
 	r.runtimeCommands(r.protocol);
 	     
     }
@@ -42,6 +39,7 @@ public class Registry implements Node {
 	TCPServerThread server = new TCPServerThread(registry, portNumber);
 	Thread serverThread = new Thread(server);
 	serverThread.start();
+	System.out.println("Registry has been started.");
     }
 
     public void runtimeCommands(RegistryProtocol protocol) {
@@ -49,5 +47,5 @@ public class Registry implements Node {
 	Thread icpThread = new Thread(icp);
 	icpThread.start();
     }
-    
+        
 }

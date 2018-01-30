@@ -16,8 +16,8 @@ public class TCPConnectionsCache {
 	connections.put(new Integer(nodeID), incomingConnection);
     }
 
-    public SortedMap<Integer, TCPConnection> getConnections() {
-	return connections;
+    public TCPConnection getConnection(int nodeID) {
+	return connections.get(nodeID);
     }
     
 }

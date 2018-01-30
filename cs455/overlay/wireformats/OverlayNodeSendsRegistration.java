@@ -12,6 +12,7 @@ public class OverlayNodeSendsRegistration implements Event {
     private int portNumber;
 
     public OverlayNodeSendsRegistration(DataInputStream din) throws UnknownHostException, IOException {
+	// for receiving
 	ipLength = din.readInt();
 	ipAddressRaw = new byte[ipLength];
 	din.readFully(ipAddressRaw);
@@ -20,6 +21,7 @@ public class OverlayNodeSendsRegistration implements Event {
     }
 
     public OverlayNodeSendsRegistration(InetAddress ipAddress, int portNumber) throws UnknownHostException {
+	// for sending
 	this.ipAddress = ipAddress;
 	this.ipAddressRaw = convertToRaw(ipAddress);
 	ipLength = ipAddressRaw.length;

@@ -30,24 +30,23 @@ public class EventFactory {
 		break;
 	    case 3: event = new RegistryReportsRegistrationStatus(din);
 		break;
-		//TODO
-	    case 4: 
+            case 4: event = new OverlayNodeSendsDeregistration(din);
 		break;
-	    case 5:
+	    case 5: event = new RegistryReportsDeregistrationStatus(din);
 		break;
-	    case 6:
+	case 6: //event = new RegistrySendsNodeManifest(din);
 		break;
-	    case 7:
+	case 7: //event = new NodeReportsOverlaySetupStatus(din);
 		break;
-	    case 8:
+	case 8: //event = new RegistryRequestsTaskInitiate(din);
 		break;
-	    case 9: 
+	case 9: //event = new OverlayNodeSendsData(din);
 		break;
-	    case 10: 
+	case 10: //event = new OverlayNodeReportsTaskFinished(din);
 		break;
-	    case 11:
+	case 11: //event = new RegistryRequestsTrafficSummary(din);
 		break;
-	    case 12:
+	case 12: //event = new OverlayNodeReportsTrafficSummary(din);
 		break;
 	    default: System.out.println("Error in EventFactory: message type " + type + " is invalid.");
 		System.exit(1);

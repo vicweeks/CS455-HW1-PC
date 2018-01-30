@@ -30,9 +30,9 @@ public class MessagingNode implements Node {
 
 	int localPortNumber = m.setUpServerThread(m);
 	
-	System.out.println("Messaging Node has been started.");
 	
-	try {
+	
+	try { // register with Registry
 	    byte[] registerMessageBytes = m.createRegistrationMessage(localPortNumber);
 	    m.connectToRegistry(m, hostName, registryPortNumber);
 	    m.protocol = new MessagingProtocol(m.registryConnection);
@@ -53,6 +53,7 @@ public class MessagingNode implements Node {
 	portNumber = server.getPortNumber();
 	Thread serverThread = new Thread(server);
 	serverThread.start();
+	System.out.println("Messaging Node has been started.");
 	return portNumber;
     }
     
