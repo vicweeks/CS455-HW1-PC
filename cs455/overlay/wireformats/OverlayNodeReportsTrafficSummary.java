@@ -5,6 +5,10 @@ import java.io.*;
 public class OverlayNodeReportsTrafficSummary implements Event {
 
     private int type = 12;
+
+    public OverlayNodeReportsTrafficSummary(DataInputStream din) {
+
+    }
     
     public int getType() {
 	return type;

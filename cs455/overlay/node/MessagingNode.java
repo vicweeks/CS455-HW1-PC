@@ -35,7 +35,7 @@ public class MessagingNode implements Node {
 	try { // register with Registry
 	    byte[] registerMessageBytes = m.createRegistrationMessage(localPortNumber);
 	    m.connectToRegistry(m, hostName, registryPortNumber);
-	    m.protocol = new MessagingProtocol(m.registryConnection);
+	    m.protocol = new MessagingProtocol(m, m.registryConnection);
 	    m.registryConnection.sendMessage(registerMessageBytes);
 	} catch(UnknownHostException uhe) {
 	    System.out.println(uhe.getMessage());

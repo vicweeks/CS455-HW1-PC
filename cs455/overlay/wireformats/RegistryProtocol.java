@@ -30,16 +30,23 @@ public class RegistryProtocol {
 
     // command: setup-overlay number-of-routing-table-entries
     public void setupOverlay(int numRoutingTableEntries) {
-	// TODO
 	registryRoutingTable.setTableSize(numRoutingTableEntries);
-	constructNodeRoutingTables();
+
+	OverlaySetup setup = new OverlaySetup(registryRoutingTable, connectionCache);
+	allRoutingTables = setup.getAllTables();
 	try {
-	    constructNodeManifest();
+	    for (RoutingTable nodeTable : allRoutingTables) {
+		RoutingEntry nodeEntry = nodeTable.getLocalEntry();
+		TCPConnection connection = connectionCache.getConnection(nodeEntry.getNodeID());
+		byte[] nodeManifest = setup.constructNodeManifest(nodeTable);
+		sendNodeManifest(connection, nodeManifest);
+	    }
 	} catch (UnknownHostException uhe) {
 	    System.out.println(uhe.getMessage());
 	} catch (IOException ioe) {
 	    System.out.println(ioe.getMessage());
 	}
+	
 	System.out.println("This command will make me setup the overlay with "
 			   + numRoutingTableEntries + " routing table entries");
     }
@@ -54,55 +61,7 @@ public class RegistryProtocol {
     public void initiateTask(int numMessages) {
 	System.out.println("This command will cause me to tell the nodes to start sending " + numMessages
 			   + " messages.");
-    }
-
-    private void constructNodeRoutingTables() {
-	int numberOfNodes = registryRoutingTable.getNumberOfNodes();
-	allRoutingTables = new ArrayList<RoutingTable>(numberOfNodes);
-	ArrayList<RoutingEntry> allNodeEntries= registryRoutingTable.getConnectedNodes();
-	int tableSize = registryRoutingTable.getTableSize();
-	ArrayList<Integer> allNodeIDs = registryRoutingTable.getListIDs();
-	
-	for(RoutingEntry entry : allNodeEntries) {
-	    RoutingTable nodeTable = new RoutingTable(entry, tableSize, numberOfNodes, allNodeIDs);
-	    int nodeID = entry.getNodeID();
-	    calculateRoutingTable(nodeID, nodeTable, numberOfNodes, allNodeIDs);
-	    allRoutingTables.add(nodeTable);
-	}
-    }
-
-    private void calculateRoutingTable(int nodeID, RoutingTable nodeTable, int numberOfNodes,
-				       ArrayList<Integer> allNodeIDs) {
-	int idIndex = allNodeIDs.indexOf(nodeID);
-	int tableSize = nodeTable.getTableSize();
-	int[] connectedIDs = new int[tableSize];
-	for (int i=0; i<tableSize; i++) {
-	    int nextIndex = (int) ((idIndex + Math.pow(2, i)) % numberOfNodes);
-	    connectedIDs[i] = allNodeIDs.get(nextIndex);
-	}
-	for (int nextID : connectedIDs) {
-	    TCPConnection nextConnection = connectionCache.getConnection(nextID);
-	    nodeTable.addEntry(nodeID, nextConnection.getRemoteIP(), nextConnection.getRemotePort());
-	}
-    }
-
-    private void constructNodeManifest() throws UnknownHostException, IOException {
-	int tableSize = registryRoutingTable.getTableSize();
-	int numNodeIDs = registryRoutingTable.getNumberOfNodes();
-	int[] allNodeIDs = registryRoutingTable.getAllIDs();
-     
-	for (RoutingTable nodeTable : allRoutingTables) {
-	    RoutingEntry nodeEntry = nodeTable.getLocalEntry();
-	    TCPConnection connection = connectionCache.getConnection(nodeEntry.getNodeID());
-	    RoutingEntry[] nodesToConnect = new RoutingEntry[tableSize];
-	    nodeTable.getConnectedNodes().toArray(nodesToConnect);
-	    RegistrySendsNodeManifest nodeManifest =
-		new RegistrySendsNodeManifest(tableSize, nodesToConnect, numNodeIDs, allNodeIDs);
-	    byte[] nodeManifestMessage = nodeManifest.getBytes();
-	    sendNodeManifest(connection, nodeManifestMessage);
-	}
-	
-    }
+    } 
     
     public void onEvent(TCPConnection connection, Event event) {
 	int eventType = event.getType();
@@ -112,7 +71,7 @@ public class RegistryProtocol {
 		break;
 	    case 4:
 		break;
-	    case 7:
+	    case 7: onReceivedSetupStatus(connection, event);
 		break;
 	    case 10:
 		break;
@@ -142,10 +101,9 @@ public class RegistryProtocol {
 	    if (status != -1) {
 		// Generate unique node ID
 		nodeID = generateNodeID();
-		registryRoutingTable.addEntry(nodeID, ipAddress, portNumber);
+		registerNode(nodeID, connection);
 		statusMessage = "Registration request successful. The number of messaging nodes currently constituting the overlay is (" + registryRoutingTable.getConnectedNodes().size() + ")";
 		registrationStatus = createRegistrationStatus(nodeID, statusMessage);
-		registerNode(nodeID, connection);
 		//Debug
 		System.out.println("Added node with id: " + nodeID);
 	    } else {
@@ -160,6 +118,16 @@ public class RegistryProtocol {
 	sendRegistrationStatus(connection, registrationStatus);
     }
 
+    // Message Type 7
+    private void onReceivedSetupStatus(TCPConnection connection, Event event) {
+	NodeReportsOverlaySetupStatus setupStatus = (NodeReportsOverlaySetupStatus) event;
+	int status = setupStatus.getStatus();
+	if (status == -1) {
+	    System.out.println(setupStatus.getInfo());
+	} else
+	    System.out.println("Received Setup Status from node " +  status);
+    }
+    
     private String checkForRegistrationError(TCPConnection connection, InetAddress ipAddress, int portNumber) {
         ArrayList<RoutingEntry> allRoutingEntries = registryRoutingTable.getConnectedNodes();
 	

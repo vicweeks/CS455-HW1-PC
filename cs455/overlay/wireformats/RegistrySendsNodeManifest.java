@@ -1,6 +1,7 @@
 package cs455.overlay.wireformats;
 
 import cs455.overlay.routing.*;
+import java.util.ArrayList;
 import java.io.*;
 import java.net.*;
 
@@ -8,14 +9,14 @@ public class RegistrySendsNodeManifest implements Event {
 
     private int type = 6;
     private int routingTableSize;
-    private RoutingEntry[] nodesToConnect;
+    private ArrayList<RoutingEntry> nodesToConnect;
     private int numNodeIDs;
-    private int[] allNodeIDs;
+    private ArrayList<Integer> allNodeIDs;
 
     public RegistrySendsNodeManifest(DataInputStream din) throws UnknownHostException, IOException {
 	// for receiving
 	routingTableSize = din.readInt();
-	nodesToConnect = new RoutingEntry[routingTableSize];
+	nodesToConnect = new ArrayList<RoutingEntry>(routingTableSize);
 	for (int i=0; i<routingTableSize; i++) {
 	    int nodeID = din.readInt();
 	    int ipLength = din.readInt();
@@ -24,17 +25,17 @@ public class RegistrySendsNodeManifest implements Event {
 	    InetAddress ipAddress = convertFromRaw(ipAddressRaw);
 	    int portNumber = din.readInt();
 	    RoutingEntry entry = new RoutingEntry(nodeID, ipAddress, portNumber);
-	    nodesToConnect[i] = entry;
+	    nodesToConnect.add(entry);
 	}
 	numNodeIDs = din.readInt();
-	allNodeIDs = new int[numNodeIDs];
+	allNodeIDs = new ArrayList<Integer>(numNodeIDs);
 	for (int i=0; i<numNodeIDs; i++) {
-	    allNodeIDs[i] = din.readInt();
+	    allNodeIDs.add(din.readInt());
 	}
     }
 
-    public RegistrySendsNodeManifest(int routingTableSize, RoutingEntry[] nodesToConnect,
-				     int numNodeIDs, int[] allNodeIDs)
+    public RegistrySendsNodeManifest(int routingTableSize, ArrayList<RoutingEntry> nodesToConnect,
+				     int numNodeIDs, ArrayList<Integer> allNodeIDs)
 	throws UnknownHostException {
 	// for sending
 	this.routingTableSize = routingTableSize;
@@ -51,7 +52,7 @@ public class RegistrySendsNodeManifest implements Event {
 	return routingTableSize;
     }
 
-    public RoutingEntry[] getRoutingNodes() {
+    public ArrayList<RoutingEntry> getRoutingNodes() {
 	return nodesToConnect;
     }
 
@@ -59,7 +60,7 @@ public class RegistrySendsNodeManifest implements Event {
 	return numNodeIDs;
     }
 
-    private int[] getAllNodeIDs() {
+    public ArrayList<Integer> getAllNodeIDs() {
 	return allNodeIDs;
     }
 

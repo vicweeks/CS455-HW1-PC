@@ -30,6 +30,7 @@ public class TCPReceiver implements Runnable {
 
 		EventFactory eventFactory = EventFactory.getInstance();
 		Event receivedEvent = eventFactory.constructEvent(data);
+		
 		node.onEvent(self, receivedEvent);
 		
 	    } catch (SocketException se) {

@@ -5,6 +5,10 @@ import java.io.*;
 public class RegistryRequestsTaskInitiate implements Event {
 
     private int type = 8;
+
+    public RegistryRequestsTaskInitiate(DataInputStream din) {
+
+    }
     
     public int getType() {
 	return type;

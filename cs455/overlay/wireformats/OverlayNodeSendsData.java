@@ -5,6 +5,10 @@ import java.io.*;
 public class OverlayNodeSendsData implements Event {
 
     private int type = 9;
+
+    public OverlayNodeSendsData(DataInputStream din) {
+
+    }
     
     public int getType() {
 	return type;

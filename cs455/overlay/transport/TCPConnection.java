@@ -10,6 +10,7 @@ public class TCPConnection {
     private InetAddress remoteIP;
     private InetAddress localIP;
     private int remotePort;
+    private int localPort;
     private TCPConnection self;
     private Node node;
     private Socket socket;
@@ -24,6 +25,7 @@ public class TCPConnection {
 	remoteIP = socket.getInetAddress();
 	localIP = socket.getLocalAddress();
 	remotePort = socket.getPort();
+	localPort = socket.getLocalPort();
     }
 
     public void setUpConnection(TCPConnection self) {
@@ -61,6 +63,10 @@ public class TCPConnection {
     
     public int getRemotePort() {
 	return remotePort;
+    }
+
+    public int getLocalPort() {
+	return localPort;
     }
     
 }

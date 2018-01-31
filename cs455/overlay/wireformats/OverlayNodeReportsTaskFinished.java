@@ -5,6 +5,10 @@ import java.io.*;
 public class OverlayNodeReportsTaskFinished implements Event {
 
     private int type = 10;
+   
+    public OverlayNodeReportsTaskFinished(DataInputStream din) {
+
+    }
     
     public int getType() {
 	return type;

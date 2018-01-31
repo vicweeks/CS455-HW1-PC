@@ -2,20 +2,23 @@ package cs455.overlay.wireformats;
 
 import cs455.overlay.routing.*;
 import cs455.overlay.transport.*;
+import cs455.overlay.node.*;
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 import java.io.*;
+import java.net.*;
 
 public class MessagingProtocol {
 
+    private MessagingNode self;
     private int localNodeID;
     private TCPConnectionsCache connectionCache;
     private RoutingTable routingTable;
     
-    public MessagingProtocol(TCPConnection registryConnection) {
-        connectionCache = new TCPConnectionsCache();
+    public MessagingProtocol(MessagingNode self, TCPConnection registryConnection) {
+	this.self = self;
+	connectionCache = new TCPConnectionsCache();
 	connectionCache.addConnection(-1, registryConnection);
-	routingTable = new RoutingTable();
     }
 
     // Command: print-counters-and-diagnostics
@@ -36,9 +39,9 @@ public class MessagingProtocol {
 	    {
 	    case 3: onReceivedRegistrationStatus(connection, event);
 		break;
-	    case 5:
+	    case 5: 
 		break;
-	    case 6:
+	    case 6: onReceivedNodeManifest(connection, event);
 		break;
 	    case 8:
 		break;
@@ -60,7 +63,53 @@ public class MessagingProtocol {
 	System.out.println(infoString);
     }
     
-    public void sendMessage(TCPConnection connection, byte[] message) {
+    // Message Type 6
+    private void onReceivedNodeManifest(TCPConnection connection, Event event) {
+	RegistrySendsNodeManifest nodeManifest = (RegistrySendsNodeManifest) event;
+	int routingTableSize = nodeManifest.getRoutingTableSize();
+	ArrayList<RoutingEntry> nodesToConnect = nodeManifest.getRoutingNodes();
+	int numNodeIDs = nodeManifest.getNumNodes();
+	ArrayList<Integer> allNodeIDs = nodeManifest.getAllNodeIDs();
+	RoutingEntry localEntry = new RoutingEntry(localNodeID, connection.getLocalIP(), connection.getLocalPort());
+	routingTable = new RoutingTable(localEntry, routingTableSize, numNodeIDs, allNodeIDs, nodesToConnect);
+	initiateConnections(nodesToConnect);
+    }
+
+    private void initiateConnections(ArrayList<RoutingEntry> nodesToConnect) {
+	int status = localNodeID;
+	String statusMessage = "";
+	int nodeToConnectID = -1;
+	try {
+	    for (RoutingEntry entry : nodesToConnect) {
+		nodeToConnectID = entry.getNodeID();
+		Socket socket = new Socket(entry.getIPAddress(), entry.getPortNumber());
+		TCPConnection routingConnection = new TCPConnection(self, socket);
+		connectionCache.addConnection(nodeToConnectID, routingConnection);
+	    }
+	} catch (UnknownHostException uhe) {
+	    statusMessage = "Node " + localNodeID + " failed to connect to node "
+		+ nodeToConnectID;
+	    status = -1;
+	} catch (IOException ioe) {
+	    statusMessage = "Node " + localNodeID + " failed to connect to node "
+		+ nodeToConnectID;
+	    status = -1;
+	}
+	reportOverlaySetupStatus(status, statusMessage);
+    }
+
+    private void reportOverlaySetupStatus(int status, String statusMessage) {
+	try {
+	    NodeReportsOverlaySetupStatus setupStatus = new NodeReportsOverlaySetupStatus(status, statusMessage);
+	    TCPConnection connection = connectionCache.getConnection(-1);
+	    byte[] setupStatusMessage = setupStatus.getBytes();
+	    sendMessage(connection, setupStatusMessage);
+	} catch (IOException ioe) {
+	    System.out.println(ioe.getMessage());
+	}
+    }
+    
+    public void sendMessage(TCPConnection connection, byte[] message) throws IOException {
 	connection.sendMessage(message);
     }
     

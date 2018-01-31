@@ -12,12 +12,12 @@ public class RoutingTable {
     private ArrayList<RoutingEntry> connectedNodes;
 
     public RoutingTable(RoutingEntry localEntry, int tableSize, int numberOfNodes,
-			ArrayList<Integer> allNodeIDs) {
+			ArrayList<Integer> allNodeIDs, ArrayList<RoutingEntry> nodesToConnect) {
 	this.localEntry = localEntry;
 	this.tableSize = tableSize;
 	this.numberOfNodes = numberOfNodes;
 	this.allNodeIDs = allNodeIDs;
-	this.connectedNodes = new ArrayList<RoutingEntry>(tableSize);
+	this.connectedNodes = nodesToConnect;
     }
 
     public RoutingTable() {
@@ -48,14 +48,6 @@ public class RoutingTable {
 	return allNodeIDs;
     }
     
-    public int[] getAllIDs() {
-	int[] idArray = new int[numberOfNodes];
-	for (int i=0; i<idArray.length; i++) {
-	    idArray[i] = allNodeIDs.get(i);
-	}
-	return idArray;
-    }
-
     public ArrayList<RoutingEntry> getConnectedNodes() {
 	return connectedNodes;
     }
