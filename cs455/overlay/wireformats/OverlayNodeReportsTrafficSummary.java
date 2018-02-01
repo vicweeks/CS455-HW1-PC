@@ -1,5 +1,21 @@
 package cs455.overlay.wireformats;
 
-public class OverlayNodeReportsTrafficSummary {
+import java.io.*;
 
+public class OverlayNodeReportsTrafficSummary implements Event {
+
+    private int type = 12;
+
+    public OverlayNodeReportsTrafficSummary(DataInputStream din) {
+
+    }
+    
+    public int getType() {
+	return type;
+    }
+
+    public byte[] getBytes() throws IOException {
+	return null;
+    }
+    
 }

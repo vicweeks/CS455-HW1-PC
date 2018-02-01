@@ -25,79 +25,34 @@ public class EventFactory {
 
 	type = din.readInt();
 
-	switch (type)
-	    {
+	switch (type) {
 	    case 2: event = new OverlayNodeSendsRegistration(din);
 		break;
-	    case 3: event = registryReportsRegistrationStatus(din);
+	    case 3: event = new RegistryReportsRegistrationStatus(din);
 		break;
-	    case 4: event = overlayNodeSendsDeregistration(din);
+            case 4: event = new OverlayNodeSendsDeregistration(din);
 		break;
-	    case 5: event = registryReportsDeregistrationStatus(din);
+	    case 5: event = new RegistryReportsDeregistrationStatus(din);
 		break;
-	    case 6: event = registrySendsNodeManifest(din);
+	case 6: event = new RegistrySendsNodeManifest(din);
 		break;
-	    case 7: event = nodeReportsOverlaySetupStatus(din);
+	case 7: event = new NodeReportsOverlaySetupStatus(din);
 		break;
-	    case 8: event = registryRequestsTaskInitiate(din);
+	case 8: event = new RegistryRequestsTaskInitiate(din);
 		break;
-	    case 9: event = overlayNodeSendsData(din);
+	case 9: event = new OverlayNodeSendsData(din);
 		break;
-	    case 10: event = overlayNodeReportsTaskFinished(din);
+	case 10: event = new OverlayNodeReportsTaskFinished(din);
 		break;
-	    case 11: event = registryRequestsTrafficSummary(din);
+	case 11: event = new RegistryRequestsTrafficSummary(din);
 		break;
-	    case 12: event = overlayNodeReportsTrafficSummary(din);
+	case 12: event = new OverlayNodeReportsTrafficSummary(din);
 		break;
 	    default: System.out.println("Error in EventFactory: message type " + type + " is invalid.");
 		System.exit(1);
-	    }
+	}
 
 	return event;
-    }
-
-    private Event overlayNodeSendsRegistration(DataInputStream din) {
-	return null;
-    }
-
-    private Event registryReportsRegistrationStatus(DataInputStream din) {
-	return null;
-    }
-
-    private Event overlayNodeSendsDeregistration(DataInputStream din) {
-	return null;
-    }
-
-    private Event registryReportsDeregistrationStatus(DataInputStream din) {
-	return null;
-    }
-
-    private Event registrySendsNodeManifest(DataInputStream din) {
-	return null;
-    }
-
-    private Event nodeReportsOverlaySetupStatus(DataInputStream din) {
-	return null;
-    }
-
-    private Event registryRequestsTaskInitiate(DataInputStream din) {
-	return null;
-    }
-
-    private Event overlayNodeSendsData(DataInputStream din) {
-	return null;
-    }
-
-    private Event overlayNodeReportsTaskFinished(DataInputStream din) {
-	return null;
-    }
-
-    private Event registryRequestsTrafficSummary(DataInputStream din) {
-	return null;
-    }
-
-    private Event overlayNodeReportsTrafficSummary(DataInputStream din) {
-	return null;
-    }
+    } 
     
 }

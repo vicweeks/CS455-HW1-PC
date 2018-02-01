@@ -2,18 +2,22 @@ package cs455.overlay.node;
 
 import cs455.overlay.wireformats.*;
 import cs455.overlay.transport.*;
+import cs455.overlay.util.*;
 import java.net.*;
 import java.io.*;
+import java.util.ArrayList;
 
 public class Registry implements Node {
 
-    public void onEvent(Event event) {
-
+    private RegistryProtocol protocol;
+    
+    public void onEvent(TCPConnection connection, Event event) {
+	protocol.onEvent(connection, event);
     }
     
     public static void main(String[] args) throws IOException {
 
-	Registry registry = new Registry();
+	Registry r = new Registry();
 	
         if (args.length != 1) {
             System.err.println("Usage: java cs455.overlay.node.Registry <port number>");
@@ -22,13 +26,26 @@ public class Registry implements Node {
 
         int portNumber = Integer.parseInt(args[0]);
 
-	registry.setUpServerThread(portNumber);
+	r.protocol = new RegistryProtocol();
+	
+	r.setUpServerThread(r, portNumber);
+		
+	// listen for commands
+	r.runtimeCommands(r.protocol);
 	     
     }
 
-    public void setUpServerThread(int portNumber) {
-	TCPServerThread serverThread = new TCPServerThread(portNumber);
+    public void setUpServerThread(Node registry, int portNumber) {
+	TCPServerThread server = new TCPServerThread(registry, portNumber);
+	Thread serverThread = new Thread(server);
 	serverThread.start();
+	System.out.println("Registry has been started.");
     }
-    
+
+    public void runtimeCommands(RegistryProtocol protocol) {
+	InteractiveCommandParser icp = new InteractiveCommandParser(true, protocol);
+	Thread icpThread = new Thread(icp);
+	icpThread.start();
+    }
+        
 }

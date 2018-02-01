@@ -2,22 +2,22 @@ package cs455.overlay.node;
 
 import cs455.overlay.wireformats.*;
 import cs455.overlay.transport.*;
+import cs455.overlay.util.*;
 import java.net.*;
 import java.io.*;
 
 public class MessagingNode implements Node {
 
     private TCPConnection registryConnection;
-    private byte[] ipAddress;
-    private int localPortNumber;
+    private MessagingProtocol protocol;
     
-    public void onEvent(Event event) {
-
+    public void onEvent(TCPConnection connection, Event event) {
+	protocol.onEvent(connection, event);
     }
     
     public static void main(String[] args) throws IOException {
 
-	MessagingNode messagingNode = new MessagingNode();
+	MessagingNode m = new MessagingNode();
 	
         if (args.length != 2) {
             System.err.println(
@@ -28,37 +28,51 @@ public class MessagingNode implements Node {
         String hostName = args[0];
         int registryPortNumber = Integer.parseInt(args[1]);
 
-	messagingNode.setUpServerThread();
+	int localPortNumber = m.setUpServerThread(m);
+	
+	
+	
+	try { // register with Registry
+	    byte[] registerMessageBytes = m.createRegistrationMessage(localPortNumber);
+	    m.connectToRegistry(m, hostName, registryPortNumber);
+	    m.protocol = new MessagingProtocol(m, m.registryConnection);
+	    m.registryConnection.sendMessage(registerMessageBytes);
+	} catch(UnknownHostException uhe) {
+	    System.out.println(uhe.getMessage());
+	} catch(IOException ioe) {
+	    System.out.println(ioe.getMessage());
+	}
 
-	byte[] registerMessageBytes = messagingNode.createRegistrationMessage();
-	
-	messagingNode.connectToRegistry(hostName, registryPortNumber);
-	
-	messagingNode.registryConnection.sendMessage(registerMessageBytes);
+	m.runtimeCommands(m.protocol);
 	
     }
 
-    public void setUpServerThread() {
-	TCPServerThread serverThread = new TCPServerThread(0);
-	localPortNumber = serverThread.getPortNumber();
+    public int setUpServerThread(Node m) {
+	int portNumber = -1;
+	TCPServerThread server = new TCPServerThread(m, 0);
+	portNumber = server.getPortNumber();
+	Thread serverThread = new Thread(server);
 	serverThread.start();
+	System.out.println("Messaging Node has been started.");
+	return portNumber;
     }
     
-    public byte[] createRegistrationMessage() throws IOException {
-	try {
-	    InetAddress localHost = InetAddress.getLocalHost();
-	    ipAddress = localHost.getAddress();
-	} catch (UnknownHostException e) {
-	    System.out.println(e.getMessage());
-	    System.exit(1);
-	}
+    public byte[] createRegistrationMessage(int localPortNumber) throws UnknownHostException, IOException {
+	InetAddress ipAddress = InetAddress.getLocalHost();
 	OverlayNodeSendsRegistration registerMessage = new OverlayNodeSendsRegistration(ipAddress, localPortNumber);
 	return registerMessage.getBytes();
     }
     
-    public void connectToRegistry(String hostName, int portNumber) throws UnknownHostException, IOException {
-	Socket registrySocket = new Socket(hostName, portNumber);
-	registryConnection = new TCPConnection(registrySocket);
+    public void connectToRegistry(Node messagingNode, String hostName, int portNumber) throws UnknownHostException, IOException {
+	Socket registrySocket = new Socket(hostName, portNumber);	
+	registryConnection = new TCPConnection(messagingNode, registrySocket);
+	registryConnection.setUpConnection(registryConnection);
+    }
+
+    public void runtimeCommands(MessagingProtocol protocol) {
+	InteractiveCommandParser icp = new InteractiveCommandParser(false, protocol);
+	Thread icpThread = new Thread(icp);
+	icpThread.start();
     }
     
 }

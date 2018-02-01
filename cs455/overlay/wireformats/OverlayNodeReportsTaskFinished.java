@@ -1,5 +1,21 @@
 package cs455.overlay.wireformats;
 
-public class OverlayNodeReportsTaskFinished {
+import java.io.*;
 
+public class OverlayNodeReportsTaskFinished implements Event {
+
+    private int type = 10;
+   
+    public OverlayNodeReportsTaskFinished(DataInputStream din) {
+
+    }
+    
+    public int getType() {
+	return type;
+    }
+
+    public byte[] getBytes() throws IOException {
+	return null;
+    }
+    
 }

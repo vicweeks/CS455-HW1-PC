@@ -1,5 +1,21 @@
 package cs455.overlay.wireformats;
 
-public class OverlayNodeSendsData {
+import java.io.*;
 
+public class OverlayNodeSendsData implements Event {
+
+    private int type = 9;
+
+    public OverlayNodeSendsData(DataInputStream din) {
+
+    }
+    
+    public int getType() {
+	return type;
+    }
+
+    public byte[] getBytes() throws IOException {
+	return null;
+    }
+    
 }

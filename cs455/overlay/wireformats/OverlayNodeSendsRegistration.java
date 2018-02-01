@@ -1,24 +1,30 @@
 package cs455.overlay.wireformats;
 
 import java.io.*;
+import java.net.*;
 
 public class OverlayNodeSendsRegistration implements Event {
         
     private int type = 2;
     private int ipLength;
-    private byte[] ipAddress;
+    private InetAddress ipAddress;
+    private byte[] ipAddressRaw;
     private int portNumber;
 
-    public OverlayNodeSendsRegistration(DataInputStream din) throws IOException {
+    public OverlayNodeSendsRegistration(DataInputStream din) throws UnknownHostException, IOException {
+	// for receiving
 	ipLength = din.readInt();
-	ipAddress = new byte[ipLength];
-	din.readFully(ipAddress);
+	ipAddressRaw = new byte[ipLength];
+	din.readFully(ipAddressRaw);
+	ipAddress = convertFromRaw(ipAddressRaw);
 	portNumber = din.readInt();
     }
 
-    public OverlayNodeSendsRegistration(byte[] ipAddress, int portNumber) {
+    public OverlayNodeSendsRegistration(InetAddress ipAddress, int portNumber) throws UnknownHostException {
+	// for sending
 	this.ipAddress = ipAddress;
-	ipLength = ipAddress.length;
+	this.ipAddressRaw = convertToRaw(ipAddress);
+	ipLength = ipAddressRaw.length;
 	this.portNumber = portNumber;
     }
     
@@ -26,6 +32,22 @@ public class OverlayNodeSendsRegistration implements Event {
 	return type;
     }
 
+    public InetAddress getIPAddress() {
+	return ipAddress;
+    }
+
+    public int getPortNumber() {
+	return portNumber;
+    }
+
+    private InetAddress convertFromRaw(byte[] ipAddressRaw) throws UnknownHostException {
+	return InetAddress.getByAddress(ipAddressRaw);
+    }
+
+    private byte[] convertToRaw(InetAddress ipAddress) throws UnknownHostException {
+	return ipAddress.getAddress();
+    }
+    
     public byte[] getBytes() throws IOException {
 	byte[] marshalledBytes = null;
 	ByteArrayOutputStream baOutputStream = new ByteArrayOutputStream();
@@ -33,7 +55,7 @@ public class OverlayNodeSendsRegistration implements Event {
 
 	dout.writeInt(type);
 	dout.writeInt(ipLength);
-	dout.write(ipAddress);
+	dout.write(ipAddressRaw);
 	dout.writeInt(portNumber);
 
 	dout.flush();
