@@ -3,6 +3,9 @@ package cs455.overlay.wireformats;
 import cs455.overlay.routing.*;
 import cs455.overlay.transport.*;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.io.*;
 import java.net.*;
@@ -10,12 +13,14 @@ import java.net.*;
 public class RegistryProtocol {
 
     private TCPConnectionsCache connectionCache;
-    private RoutingTable registryRoutingTable;
-    private ArrayList<RoutingTable> allRoutingTables; 
+    private ArrayList<RoutingTable> allRoutingTables;
+    private int readyNodes;
+    private SortedMap<Integer, RoutingEntry> sortedEntries;
     
     public RegistryProtocol() {
 	connectionCache = new TCPConnectionsCache();
-	registryRoutingTable = new RoutingTable();
+	readyNodes = 0;
+	sortedEntries = new TreeMap<Integer, RoutingEntry>();
     }
 
     public TCPConnectionsCache getConnectionCache() {
@@ -24,15 +29,16 @@ public class RegistryProtocol {
 
     // command list-messaging-nodes
     public void listMessagingNodes() {
-	// TODO
-	System.out.println("This command will make me list all the messaging nodes.");
+	for (RoutingEntry entry : sortedEntries.values()) {
+	    System.out.println("Messaging node with ID " + entry.getNodeID()
+			       + " has IP Address " + entry.getIPAddress()
+			       + " and Port Number " + entry.getPortNumber());
+	}
     }
 
     // command: setup-overlay number-of-routing-table-entries
     public void setupOverlay(int numRoutingTableEntries) {
-	registryRoutingTable.setTableSize(numRoutingTableEntries);
-
-	OverlaySetup setup = new OverlaySetup(registryRoutingTable, connectionCache);
+	OverlaySetup setup = new OverlaySetup(sortedEntries, numRoutingTableEntries);
 	allRoutingTables = setup.getAllTables();
 	try {
 	    for (RoutingTable nodeTable : allRoutingTables) {
@@ -46,9 +52,6 @@ public class RegistryProtocol {
 	} catch (IOException ioe) {
 	    System.out.println(ioe.getMessage());
 	}
-	
-	System.out.println("This command will make me setup the overlay with "
-			   + numRoutingTableEntries + " routing table entries");
     }
 
     // command: list-routing-tables
@@ -59,8 +62,14 @@ public class RegistryProtocol {
 
     // command: start number-of-messages
     public void initiateTask(int numMessages) {
-	System.out.println("This command will cause me to tell the nodes to start sending " + numMessages
-			   + " messages.");
+	if (readyNodes != sortedEntries.size())
+	    System.out.println("Error: cannot initiate setup; not all messaging nodes are ready.");
+	else {
+	    //TODO
+	    System.out.println("This command will cause me to tell the nodes to start sending "
+			       + numMessages  + " messages.");
+	}
+	
     } 
     
     public void onEvent(TCPConnection connection, Event event) {
@@ -102,7 +111,7 @@ public class RegistryProtocol {
 		// Generate unique node ID
 		nodeID = generateNodeID();
 		registerNode(nodeID, connection, ipAddress, portNumber);
-		statusMessage = "Registration request successful. The number of messaging nodes currently constituting the overlay is (" + registryRoutingTable.getConnectedNodes().size() + ")";
+		statusMessage = "Registration request successful. The number of messaging nodes currently constituting the overlay is (" + sortedEntries.size() + ")";
 		registrationStatus = createRegistrationStatus(nodeID, statusMessage);
 		//Debug
 		System.out.println("Added node with id: " + nodeID);
@@ -125,11 +134,12 @@ public class RegistryProtocol {
 	if (status == -1) {
 	    System.out.println(setupStatus.getInfo());
 	} else
-	    System.out.println("Received Setup Status from node " +  status);
+	    readyNodes++;
     }
     
     private String checkForRegistrationError(TCPConnection connection, InetAddress ipAddress, int portNumber) {
-        ArrayList<RoutingEntry> allRoutingEntries = registryRoutingTable.getConnectedNodes();
+        ArrayList<RoutingEntry> allRoutingEntries =
+	    new ArrayList<RoutingEntry>(sortedEntries.values());
 	
 	// check if node had previously registered
 	for (RoutingEntry rEntry : allRoutingEntries) {
@@ -150,7 +160,7 @@ public class RegistryProtocol {
 	int randomID;
 	while (uNodeID < 0) {
 	    randomID = ThreadLocalRandom.current().nextInt(0, 128);
-	    if (!registryRoutingTable.getListIDs().contains(randomID))
+	    if (!sortedEntries.containsKey(randomID))
 		uNodeID = randomID;
 	}
 	return uNodeID;
@@ -164,7 +174,15 @@ public class RegistryProtocol {
     private void registerNode(int nodeID, TCPConnection connection, InetAddress nodeIPAddress,
 			      int nodePortNumber) {
 	connectionCache.addConnection(nodeID, connection);
-	registryRoutingTable.registerEntry(nodeID, nodeIPAddress, nodePortNumber);
+	sortedEntries.put(new Integer(nodeID),
+			  new RoutingEntry(nodeID, nodeIPAddress, nodePortNumber));
+    }
+
+    private void deregisterNode(int nodeID, TCPConnection connection) {
+	RoutingEntry status = sortedEntries.remove(nodeID);
+	if (status == null) {
+	    System.out.println("Error removing node: node is not currently registered.");
+	}
     }
     
     private void sendRegistrationStatus(TCPConnection connection, byte[] registrationStatus) {

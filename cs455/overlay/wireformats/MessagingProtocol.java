@@ -82,6 +82,10 @@ public class MessagingProtocol {
 	try {
 	    for (RoutingEntry entry : nodesToConnect) {
 		nodeToConnectID = entry.getNodeID();
+
+		System.out.println("Messaging Node " + localNodeID
+				   + " has initiated a connection with node " + nodeToConnectID);
+		
 		Socket socket = new Socket(entry.getIPAddress(), entry.getPortNumber());
 		TCPConnection routingConnection = new TCPConnection(self, socket);
 		connectionCache.addConnection(nodeToConnectID, routingConnection);
