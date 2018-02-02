@@ -28,6 +28,10 @@ public class TCPConnection {
 	localPort = socket.getLocalPort();
     }
 
+    public void close() throws IOException {
+	receiverThread.interrupt();
+    }
+    
     public void setUpConnection(TCPConnection self) {
 	this.self = self;
 	try {

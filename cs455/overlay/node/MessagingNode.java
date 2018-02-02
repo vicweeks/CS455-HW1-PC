@@ -10,6 +10,10 @@ public class MessagingNode implements Node {
 
     private TCPConnection registryConnection;
     private MessagingProtocol protocol;
+    private InteractiveCommandParser icp;
+    private Thread icpThread;
+    private TCPServerThread server;
+    private Thread serverThread;
     
     public void onEvent(TCPConnection connection, Event event) {
 	protocol.onEvent(connection, event);
@@ -44,14 +48,14 @@ public class MessagingNode implements Node {
 	}
 
 	m.runtimeCommands(m.protocol);
-	
+	return;
     }
 
     public int setUpServerThread(Node m) {
 	int portNumber = -1;
-	TCPServerThread server = new TCPServerThread(m, 0);
+        server = new TCPServerThread(m, 0);
 	portNumber = server.getPortNumber();
-	Thread serverThread = new Thread(server);
+	serverThread = new Thread(server);
 	serverThread.start();
 	System.out.println("Messaging Node has been started.");
 	return portNumber;
@@ -70,9 +74,21 @@ public class MessagingNode implements Node {
     }
 
     public void runtimeCommands(MessagingProtocol protocol) {
-	InteractiveCommandParser icp = new InteractiveCommandParser(false, protocol);
-	Thread icpThread = new Thread(icp);
+	icp = new InteractiveCommandParser(false, protocol);
+        icpThread = new Thread(icp);
 	icpThread.start();
+    }
+
+    public void close(TCPConnection connection) {
+	try {
+	    connection.close();
+	    server.close();
+	    serverThread.interrupt();
+	    icpThread.interrupt();
+	    System.out.println("Would you like to close this node? (y/n)");
+	} catch (IOException ioe) {
+	    System.out.println(ioe.getMessage());
+	}
     }
     
 }

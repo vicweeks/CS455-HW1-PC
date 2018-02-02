@@ -81,7 +81,10 @@ public class MessagingProtocol {
     private void onReceivedDeregistrationStatus(TCPConnection connection, Event event) {
 	RegistryReportsDeregistrationStatus deregistrationResponse =
 	    (RegistryReportsDeregistrationStatus) event;
-	System.out.println("Received Deregistration confirmation");
+	if (deregistrationResponse.getStatus() == -1)
+	    System.out.println(deregistrationResponse.getInfo());
+	else
+	    self.close(connection);
     }
     
     // Message Type 6

@@ -21,15 +21,17 @@ public class InteractiveCommandParser implements Runnable {
     }
 
     public void run() {
-	while(true) {
+	while(!Thread.currentThread().isInterrupted()) {
 	    try {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 		String input = reader.readLine();
-		parseCommand(input);
+		if (!input.equals("y"))
+		    parseCommand(input);
 	    } catch (IOException e) {
 		System.out.println("Error occured when parsing command");
 	    }
 	}
+	return;
     }
 
     private void parseCommand(String input) {

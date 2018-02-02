@@ -18,10 +18,10 @@ public class TCPReceiver implements Runnable {
 	this.socket = socket;
 	din = new DataInputStream(socket.getInputStream());
     }
-
+    
     public void run() {
 	int dataLength;
-	while (socket != null) {
+	while (!Thread.currentThread().isInterrupted()) {
 	    try {        
 		dataLength = din.readInt();
 		
@@ -41,6 +41,7 @@ public class TCPReceiver implements Runnable {
 		break;
 	    }
 	}
+	return;
     }
     
 }
