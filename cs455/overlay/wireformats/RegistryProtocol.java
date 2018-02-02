@@ -101,7 +101,7 @@ public class RegistryProtocol {
 	    if (status != -1) {
 		// Generate unique node ID
 		nodeID = generateNodeID();
-		registerNode(nodeID, connection);
+		registerNode(nodeID, connection, ipAddress, portNumber);
 		statusMessage = "Registration request successful. The number of messaging nodes currently constituting the overlay is (" + registryRoutingTable.getConnectedNodes().size() + ")";
 		registrationStatus = createRegistrationStatus(nodeID, statusMessage);
 		//Debug
@@ -161,10 +161,9 @@ public class RegistryProtocol {
 	return statusMessage.getBytes();
     }
 
-    private void registerNode(int nodeID, TCPConnection connection) {
+    private void registerNode(int nodeID, TCPConnection connection, InetAddress nodeIPAddress,
+			      int nodePortNumber) {
 	connectionCache.addConnection(nodeID, connection);
-	InetAddress nodeIPAddress = connection.getRemoteIP();
-	int nodePortNumber = connection.getRemotePort();
 	registryRoutingTable.registerEntry(nodeID, nodeIPAddress, nodePortNumber);
     }
     

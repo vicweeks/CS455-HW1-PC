@@ -40,6 +40,7 @@ public class OverlaySetup {
     private ArrayList<RoutingEntry> calculateRoutingTable(int nodeID, int tableSize,
 							  int numberOfNodes, ArrayList<Integer> allNodeIDs) {
 	int idIndex = allNodeIDs.indexOf(nodeID);
+	ArrayList<RoutingEntry> allNodeEntries = registryRoutingTable.getConnectedNodes();
 	ArrayList<RoutingEntry> nodesToConnect = new ArrayList<RoutingEntry>(tableSize);
 	int[] connectedIDs = new int[tableSize];
 	for (int i=0; i<tableSize; i++) {
@@ -47,10 +48,12 @@ public class OverlaySetup {
 	    connectedIDs[i] = allNodeIDs.get(nextIndex);
 	}
 	for (int nextID : connectedIDs) {
-	    TCPConnection nextConnection = connectionCache.getConnection(nextID);
-	    RoutingEntry node = new RoutingEntry(nextID, nextConnection.getRemoteIP(), nextConnection.getRemotePort());
-	    nodesToConnect.add(node);
-	}
+	    for (RoutingEntry entry : allNodeEntries) {
+		if (entry.getNodeID() == nextID) {
+		    nodesToConnect.add(entry);
+		}
+	    }
+	}	
 	return nodesToConnect;
     }
 

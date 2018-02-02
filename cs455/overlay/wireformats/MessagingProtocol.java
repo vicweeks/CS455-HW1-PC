@@ -90,10 +90,12 @@ public class MessagingProtocol {
 	    statusMessage = "Node " + localNodeID + " failed to connect to node "
 		+ nodeToConnectID;
 	    status = -1;
+	    System.out.println(uhe.getMessage());
 	} catch (IOException ioe) {
 	    statusMessage = "Node " + localNodeID + " failed to connect to node "
 		+ nodeToConnectID;
 	    status = -1;
+	    System.out.println(ioe.getMessage());
 	}
 	reportOverlaySetupStatus(status, statusMessage);
     }

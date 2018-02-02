@@ -54,8 +54,12 @@ public class InteractiveCommandParser implements Runnable {
 	    rProtocol.listMessagingNodes();
 	} else if (command[0].equals("setup-overlay")) {
 	    // results in the registry setting up the overlay
-	    int numRoutingTableEntries = Integer.parseInt(command[1]);
-	    rProtocol.setupOverlay(numRoutingTableEntries);
+	    if (command.length != 2) {
+		System.out.println("Usage: setup-overlay {number-of-routing-table-entries}");
+	    } else {
+		int numRoutingTableEntries = Integer.parseInt(command[1]);
+		rProtocol.setupOverlay(numRoutingTableEntries);
+	    }
 	} else if (command[0].equals("list-routing-tables")) {
 	    // lists informatin about the computed routing tables for each node in the overlay
 	    rProtocol.listRoutingTables();
