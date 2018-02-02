@@ -56,6 +56,7 @@ public class InteractiveCommandParser implements Runnable {
 	    // results in the registry setting up the overlay
 	    if (command.length != 2) {
 		System.out.println("Usage: setup-overlay {number-of-routing-table-entries}");
+		return;
 	    } else {
 		int numRoutingTableEntries = Integer.parseInt(command[1]);
 		rProtocol.setupOverlay(numRoutingTableEntries);

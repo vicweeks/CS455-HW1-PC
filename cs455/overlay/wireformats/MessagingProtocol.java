@@ -12,11 +12,15 @@ public class MessagingProtocol {
 
     private MessagingNode self;
     private int localNodeID;
+    private InetAddress localIPAddress;
+    private int localPortNumber;
     private TCPConnectionsCache connectionCache;
     private RoutingTable routingTable;
     
     public MessagingProtocol(MessagingNode self, TCPConnection registryConnection) {
 	this.self = self;
+	this.localIPAddress = registryConnection.getLocalIP();
+	this.localPortNumber = registryConnection.getLocalPort();
 	connectionCache = new TCPConnectionsCache();
 	connectionCache.addConnection(-1, registryConnection);
     }
@@ -29,8 +33,17 @@ public class MessagingProtocol {
     
     // Command: exit-overlay
     public void exitOverlay() {
-	// TODO
-	System.out.println("This command will cause the node to leave the overlay.");
+	try {
+	    OverlayNodeSendsDeregistration exit =
+		new OverlayNodeSendsDeregistration(localIPAddress, localPortNumber, localNodeID);
+	    byte[] exitMessage = exit.getBytes();
+	    TCPConnection connection = connectionCache.getConnection(-1);
+	    connection.sendMessage(exitMessage);
+	} catch (UnknownHostException uhe) {
+	    System.out.println(uhe.getMessage());
+	} catch (IOException ioe) {
+	    System.out.println(ioe.getMessage());
+	}
     }
 	    
     public void onEvent(TCPConnection connection, Event event) {
@@ -39,7 +52,7 @@ public class MessagingProtocol {
 	    {
 	    case 3: onReceivedRegistrationStatus(connection, event);
 		break;
-	    case 5: 
+	    case 5: onReceivedDeregistrationStatus(connection, event);
 		break;
 	    case 6: onReceivedNodeManifest(connection, event);
 		break;
@@ -56,11 +69,19 @@ public class MessagingProtocol {
 
     // Message Type 3
     private void onReceivedRegistrationStatus(TCPConnection connection, Event event) {
-	RegistryReportsRegistrationStatus registrationResponse = (RegistryReportsRegistrationStatus) event;
+	RegistryReportsRegistrationStatus registrationResponse =
+	    (RegistryReportsRegistrationStatus) event;
 	localNodeID = registrationResponse.getStatus();
 	String infoString = registrationResponse.getInfo();
 
 	System.out.println(infoString);
+    }
+
+    // Message Type 5
+    private void onReceivedDeregistrationStatus(TCPConnection connection, Event event) {
+	RegistryReportsDeregistrationStatus deregistrationResponse =
+	    (RegistryReportsDeregistrationStatus) event;
+	System.out.println("Received Deregistration confirmation");
     }
     
     // Message Type 6
@@ -70,8 +91,10 @@ public class MessagingProtocol {
 	ArrayList<RoutingEntry> nodesToConnect = nodeManifest.getRoutingNodes();
 	int numNodeIDs = nodeManifest.getNumNodes();
 	ArrayList<Integer> allNodeIDs = nodeManifest.getAllNodeIDs();
-	RoutingEntry localEntry = new RoutingEntry(localNodeID, connection.getLocalIP(), connection.getLocalPort());
-	routingTable = new RoutingTable(localEntry, routingTableSize, numNodeIDs, allNodeIDs, nodesToConnect);
+	RoutingEntry localEntry =
+	    new RoutingEntry(localNodeID, localIPAddress, localPortNumber);
+	routingTable =
+	    new RoutingTable(localEntry, routingTableSize, numNodeIDs, allNodeIDs, nodesToConnect);
 	initiateConnections(nodesToConnect);
     }
 
@@ -106,17 +129,14 @@ public class MessagingProtocol {
 
     private void reportOverlaySetupStatus(int status, String statusMessage) {
 	try {
-	    NodeReportsOverlaySetupStatus setupStatus = new NodeReportsOverlaySetupStatus(status, statusMessage);
+	    NodeReportsOverlaySetupStatus setupStatus =
+		new NodeReportsOverlaySetupStatus(status, statusMessage);
 	    TCPConnection connection = connectionCache.getConnection(-1);
 	    byte[] setupStatusMessage = setupStatus.getBytes();
-	    sendMessage(connection, setupStatusMessage);
+	    connection.sendMessage(setupStatusMessage);
 	} catch (IOException ioe) {
 	    System.out.println(ioe.getMessage());
 	}
-    }
-    
-    public void sendMessage(TCPConnection connection, byte[] message) throws IOException {
-	connection.sendMessage(message);
     }
     
 }

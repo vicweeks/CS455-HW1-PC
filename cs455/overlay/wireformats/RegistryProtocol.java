@@ -45,7 +45,7 @@ public class RegistryProtocol {
 		RoutingEntry nodeEntry = nodeTable.getLocalEntry();
 		TCPConnection connection = connectionCache.getConnection(nodeEntry.getNodeID());
 		byte[] nodeManifest = setup.constructNodeManifest(nodeTable);
-		sendNodeManifest(connection, nodeManifest);
+		connection.sendMessage(nodeManifest);
 	    }
 	} catch (UnknownHostException uhe) {
 	    System.out.println(uhe.getMessage());
@@ -78,7 +78,7 @@ public class RegistryProtocol {
 	    {
 	    case 2: onReceivedRegistrationRequest(connection, event);
 		break;
-	    case 4:
+	    case 4: onReceivedDeregistrationRequest(connection, event);
 		break;
 	    case 7: onReceivedSetupStatus(connection, event);
 		break;
@@ -114,19 +114,52 @@ public class RegistryProtocol {
 		statusMessage = "Registration request successful. The number of messaging nodes currently constituting the overlay is (" + sortedEntries.size() + ")";
 		registrationStatus = createRegistrationStatus(nodeID, statusMessage);
 		//Debug
-		System.out.println("Added node with id: " + nodeID);
+		System.out.println("Added node with ID: " + nodeID);
 	    } else {
 		registrationStatus = createRegistrationStatus(status, statusMessage);
 		//Debug
 		System.out.println("Failed to add node");
 	    }
-	} catch (IOException e) {
-	    System.out.println(e.getMessage());
+	    connection.sendMessage(registrationStatus);
+	} catch (IOException ioe) {
+	    System.out.println(ioe.getMessage());
 	}
-
-	sendRegistrationStatus(connection, registrationStatus);
     }
 
+    // Message Type 4
+    private void onReceivedDeregistrationRequest(TCPConnection connection, Event event) {
+	OverlayNodeSendsDeregistration deregistrationRequest =
+	    (OverlayNodeSendsDeregistration) event;
+	InetAddress ipAddress = deregistrationRequest.getIPAddress();
+	int portNumber = deregistrationRequest.getPortNumber();
+	int nodeID = deregistrationRequest.getNodeID();
+	int status = 0;
+	String statusMessage = "";
+	byte[] deregistrationStatus = null;
+
+	statusMessage = checkForDeregistrationError(connection, ipAddress, portNumber, nodeID);
+	if (!statusMessage.equals(""))
+	    status = -1;
+	
+	try {
+	    if (status != -1) {
+		// deregister node
+		sortedEntries.remove(nodeID);
+		statusMessage = "Deregistration request successful. The number of messaging nodes currently constituting the overlay is (" + sortedEntries.size() + ")";
+		deregistrationStatus = createDeregistrationStatus(nodeID, statusMessage);
+		//Debug
+		System.out.println("Removed node with ID: " + nodeID);
+	    } else {
+		deregistrationStatus = createDeregistrationStatus(status, statusMessage);
+		//Debug
+		System.out.println("Failed to remove node with ID: " + nodeID);	
+	    }
+	    connection.sendMessage(deregistrationStatus);	    
+	} catch (IOException ioe) {
+	    System.out.println(ioe.getMessage());
+	}
+    }
+    
     // Message Type 7
     private void onReceivedSetupStatus(TCPConnection connection, Event event) {
 	NodeReportsOverlaySetupStatus setupStatus = (NodeReportsOverlaySetupStatus) event;
@@ -137,7 +170,8 @@ public class RegistryProtocol {
 	    readyNodes++;
     }
     
-    private String checkForRegistrationError(TCPConnection connection, InetAddress ipAddress, int portNumber) {
+    private String checkForRegistrationError(TCPConnection connection,
+					     InetAddress ipAddress, int portNumber) {
         ArrayList<RoutingEntry> allRoutingEntries =
 	    new ArrayList<RoutingEntry>(sortedEntries.values());
 	
@@ -154,6 +188,22 @@ public class RegistryProtocol {
 	}
 	return "";
     }
+
+    private String checkForDeregistrationError(TCPConnection connection, InetAddress ipAddress,
+					       int portNumber, int nodeID) {
+	
+	// check if previously registered
+	if (!sortedEntries.containsKey(nodeID)) {
+	    return "Error Deregistering Node: Node " + nodeID + " not previously registered.";
+	}
+
+	// ensure that the IP address in the message matches where the request originated
+        if (!connection.getRemoteIP().equals(ipAddress)) {
+	    return "Error Registering Node: Originating IP address does not match IP address in message.";
+	}
+	return "";
+       	
+    }
     
     private int generateNodeID() {
 	int uNodeID = -1;
@@ -167,7 +217,14 @@ public class RegistryProtocol {
     }
 
     private byte[] createRegistrationStatus(int status, String infoString) throws IOException {
-	RegistryReportsRegistrationStatus statusMessage = new RegistryReportsRegistrationStatus(status, infoString);
+	RegistryReportsRegistrationStatus statusMessage =
+	    new RegistryReportsRegistrationStatus(status, infoString);
+	return statusMessage.getBytes();
+    }
+
+    private byte[] createDeregistrationStatus(int status, String infoString) throws IOException {
+	RegistryReportsDeregistrationStatus statusMessage =
+	    new RegistryReportsDeregistrationStatus(status, infoString);
 	return statusMessage.getBytes();
     }
 
@@ -183,26 +240,6 @@ public class RegistryProtocol {
 	if (status == null) {
 	    System.out.println("Error removing node: node is not currently registered.");
 	}
-    }
-    
-    private void sendRegistrationStatus(TCPConnection connection, byte[] registrationStatus) {
-	try {
-	    sendMessage(connection, registrationStatus);
-	} catch (IOException e) {
-	    System.out.println(e.getMessage());
-	}
-    }
-
-    private void sendNodeManifest(TCPConnection connection, byte[] nodeManifest) throws IOException {
-	try {
-	    sendMessage(connection, nodeManifest);
-	} catch (UnknownHostException uhe) {
-	    System.out.println(uhe.getMessage());
-	}
-    }
-    
-    private void sendMessage(TCPConnection connection, byte[] message) throws IOException {
-	connection.sendMessage(message);
     }
     
 }

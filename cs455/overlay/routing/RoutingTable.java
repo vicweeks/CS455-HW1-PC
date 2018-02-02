@@ -39,9 +39,5 @@ public class RoutingTable {
     public ArrayList<RoutingEntry> getConnectedNodes() {
 	return connectedNodes;
     }
-    /*
-    public void addEntry(int nodeID, InetAddress ipAddress, int portNumber) {
-	connectedNodes.add(new RoutingEntry(nodeID, ipAddress, portNumber));
-    }
-    */
+
 }
