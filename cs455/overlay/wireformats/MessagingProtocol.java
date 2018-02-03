@@ -56,7 +56,7 @@ public class MessagingProtocol {
 		break;
 	    case 6: onReceivedNodeManifest(connection, event);
 		break;
-	    case 8:
+	    case 8: onReceivedTaskInitiateRequest(connection, event);
 		break;
 	    case 9:
 		break;
@@ -101,6 +101,13 @@ public class MessagingProtocol {
 	initiateConnections(nodesToConnect);
     }
 
+    // Message Type 8
+    private void onReceivedTaskInitiateRequest(TCPConnection connection, Event event) {
+	RegistryRequestsTaskInitiate taskInitiateRequest = (RegistryRequestsTaskInitiate) event;
+	int numPacketsToSend = taskInitiateRequest.getNumPacketsToSend();
+	System.out.println("Received task initiate request; I will now send messages");
+    }
+    
     private void initiateConnections(ArrayList<RoutingEntry> nodesToConnect) {
 	int status = localNodeID;
 	String statusMessage = "";

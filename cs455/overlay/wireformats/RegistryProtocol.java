@@ -66,12 +66,6 @@ public class RegistryProtocol {
 	    for (RoutingEntry entry : connectedNodes) {
 		System.out.printf("    |%3s|   |%14s|   |%5s|\n",
 				  entry.getNodeID(), entry.getIPAddress(), entry.getPortNumber());
-
-		/*
-		System.out.println("    " +  entry.getNodeID()
-				   + "    " + entry.getIPAddress()
-				   + "    " + entry.getPortNumber());
-		*/
 	    }
 	    System.out.println("\n\n\n");
 	}
@@ -82,9 +76,15 @@ public class RegistryProtocol {
 	if (readyNodes != sortedEntries.size())
 	    System.out.println("Error: cannot initiate setup; not all messaging nodes are ready.");
 	else {
-	    //TODO
-	    System.out.println("This command will cause me to tell the nodes to start sending "
-			       + numMessages  + " messages.");
+	    try {
+		RegistryRequestsTaskInitiate initiateTask =
+		    new RegistryRequestsTaskInitiate(numMessages);
+		byte[] initiateTaskMessage = initiateTask.getBytes();
+		for (TCPConnection connection : connectionCache.getConnectionList())
+		    connection.sendMessage(initiateTaskMessage);
+	    } catch (IOException ioe) {
+		System.out.println(ioe.getMessage());
+	    }
 	}
 	
     } 
@@ -142,6 +142,7 @@ public class RegistryProtocol {
 	    System.out.println(ioe.getMessage());
 	    System.out.println("Lost connection to node. It has been removed from the overlay.");
 	    sortedEntries.remove(nodeID);
+	    connectionCache.removeConnection(nodeID);
 	}
     }
 
@@ -164,6 +165,7 @@ public class RegistryProtocol {
 	    if (status != -1) {
 		// deregister node
 		sortedEntries.remove(nodeID);
+		connectionCache.removeConnection(nodeID);
 		statusMessage = "Deregistration request successful. The number of messaging nodes currently constituting the overlay is (" + sortedEntries.size() + ")";
 		deregistrationStatus = createDeregistrationStatus(nodeID, statusMessage);
 		//Debug
