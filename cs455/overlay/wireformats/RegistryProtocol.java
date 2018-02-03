@@ -123,6 +123,8 @@ public class RegistryProtocol {
 	    connection.sendMessage(registrationStatus);
 	} catch (IOException ioe) {
 	    System.out.println(ioe.getMessage());
+	    System.out.println("Lost connection to node. It has been removed from the overlay.");
+	    sortedEntries.remove(nodeID);
 	}
     }
 

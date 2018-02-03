@@ -48,13 +48,8 @@ public class TCPConnection {
 	}
     }
     
-    public void sendMessage(byte[] dataToSend) {
-	try {
-	    sender.sendData(dataToSend);
-	} catch (IOException e) {
-	    System.out.println("Failed to send message");
-	    System.out.println(e.getMessage());
-	}
+    public void sendMessage(byte[] dataToSend) throws IOException {
+	sender.sendData(dataToSend);
     }
 
     public InetAddress getRemoteIP() {
