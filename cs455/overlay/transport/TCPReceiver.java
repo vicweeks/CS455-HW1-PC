@@ -2,6 +2,7 @@ package cs455.overlay.transport;
 
 import cs455.overlay.wireformats.*;
 import cs455.overlay.node.*;
+import cs455.overlay.util.EventThread;
 import java.net.*;
 import java.io.*;
 
@@ -30,8 +31,11 @@ public class TCPReceiver implements Runnable {
 
 		EventFactory eventFactory = EventFactory.getInstance();
 		Event receivedEvent = eventFactory.constructEvent(data);
+
+		EventThread eventThread = new EventThread(node, self, receivedEvent);
+		eventThread.start();
 		
-		node.onEvent(self, receivedEvent);
+		//node.onEvent(self, receivedEvent);
 		
 	    } catch (SocketException se) {
 		System.out.println(se.getMessage());

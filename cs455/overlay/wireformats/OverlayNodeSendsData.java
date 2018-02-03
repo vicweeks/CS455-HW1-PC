@@ -18,7 +18,7 @@ public class OverlayNodeSendsData implements Event {
 	srcID = din.readInt();
 	payload = din.readInt();
 	disseminationTraceLength = din.readInt();
-	for (int i=0; i< disseminationTraceLength; i++) {
+	for (int i=0; i<disseminationTraceLength; i++) {
 	    disseminationTrace.add(din.readInt());
 	}
     }
@@ -70,7 +70,7 @@ public class OverlayNodeSendsData implements Event {
 	dout.writeInt(destID);
 	dout.writeInt(srcID);
 	dout.writeInt(payload);
-	dout.writeInt(disseminationTraceLength);
+	dout.writeInt(disseminationTrace.size());
 
 	for (int nodeID : disseminationTrace) {
 	    dout.writeInt(nodeID);
