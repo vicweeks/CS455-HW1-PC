@@ -56,8 +56,25 @@ public class RegistryProtocol {
 
     // command: list-routing-tables
     public void listRoutingTables() {
-	// TODO
-	System.out.println("This command will make me list the routing tables for each node.");
+	for (RoutingTable nodeTable : allRoutingTables) {
+	    RoutingEntry localEntry = nodeTable.getLocalEntry();
+	    ArrayList<RoutingEntry> connectedNodes = nodeTable.getConnectedNodes();
+	    System.out.println("Node table for node with \nID " + localEntry.getNodeID()
+			       + ", IP_Address " + localEntry.getIPAddress()
+			       + ", and Port_Number " + localEntry.getPortNumber() + ":");
+	    System.out.println("    Node    IP_Address         Port_Number");
+	    for (RoutingEntry entry : connectedNodes) {
+		System.out.printf("    |%3s|   |%14s|   |%5s|\n",
+				  entry.getNodeID(), entry.getIPAddress(), entry.getPortNumber());
+
+		/*
+		System.out.println("    " +  entry.getNodeID()
+				   + "    " + entry.getIPAddress()
+				   + "    " + entry.getPortNumber());
+		*/
+	    }
+	    System.out.println("\n\n\n");
+	}
     }
 
     // command: start number-of-messages
@@ -168,8 +185,11 @@ public class RegistryProtocol {
 	int status = setupStatus.getStatus();
 	if (status == -1) {
 	    System.out.println(setupStatus.getInfo());
-	} else
+	} else {
 	    readyNodes++;
+	    if (readyNodes == sortedEntries.size())
+		System.out.println("Registry is now ready to initiate tasks.");
+	}
     }
     
     private String checkForRegistrationError(TCPConnection connection,
