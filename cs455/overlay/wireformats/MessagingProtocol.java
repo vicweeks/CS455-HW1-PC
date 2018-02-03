@@ -19,8 +19,8 @@ public class MessagingProtocol {
     private int sendTracker = 0;
     private int receiveTracker = 0;
     private int relayTracker = 0;
-    private long sendSummation = 0;
-    private long receiveSummation = 0;
+    private long sendSummation = 0L;
+    private long receiveSummation = 0L;
     
     public MessagingProtocol(MessagingNode self, TCPConnection registryConnection) {
 	this.self = self;
@@ -32,8 +32,11 @@ public class MessagingProtocol {
 
     // Command: print-counters-and-diagnostics
     public void printDiagnostics() {
-	// TODO
-	System.out.println("This command will print info about messages this node has processed.");
+        System.out.printf("|%12s|    |%16s|    |%15s|    |%19s|    |%19s|\n",
+			  "Packets Sent", "Packets Received", "Packets Relayed",
+			  "Sum Values Sent", "Sum Values Received");
+	System.out.printf("|%,12d|    |%,16d|    |%,15d|    |%+,19d|    |%+,19d|\n",
+			  sendTracker, receiveTracker, relayTracker, sendSummation, receiveSummation);
     }
     
     // Command: exit-overlay
