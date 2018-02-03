@@ -86,7 +86,6 @@ public class RegistryProtocol {
 		System.out.println(ioe.getMessage());
 	    }
 	}
-	
     } 
     
     public void onEvent(TCPConnection connection, Event event) {

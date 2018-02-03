@@ -16,6 +16,11 @@ public class MessagingProtocol {
     private int localPortNumber;
     private TCPConnectionsCache connectionCache;
     private RoutingTable routingTable;
+    private int sendTracker = 0;
+    private int receiveTracker = 0;
+    private int relayTracker = 0;
+    private long sendSummation = 0;
+    private long receiveSummation = 0;
     
     public MessagingProtocol(MessagingNode self, TCPConnection registryConnection) {
 	this.self = self;
@@ -58,7 +63,7 @@ public class MessagingProtocol {
 		break;
 	    case 8: onReceivedTaskInitiateRequest(connection, event);
 		break;
-	    case 9:
+	    case 9: onReceivedData(connection, event);
 		break;
 	    case 11:
 		break;
@@ -105,7 +110,28 @@ public class MessagingProtocol {
     private void onReceivedTaskInitiateRequest(TCPConnection connection, Event event) {
 	RegistryRequestsTaskInitiate taskInitiateRequest = (RegistryRequestsTaskInitiate) event;
 	int numPacketsToSend = taskInitiateRequest.getNumPacketsToSend();
-	System.out.println("Received task initiate request; I will now send messages");
+        try {
+	    for (int i=0; i<numPacketsToSend; i++) {
+		sendDataPacket();
+	    }
+	} catch (IOException ioe) {
+	    System.out.println(ioe.getMessage());
+	}
+    }
+
+    // Message Type 9
+    private void onReceivedData(TCPConnection connection, Event event) {
+	OverlayNodeSendsData dataPacket = (OverlayNodeSendsData) event;
+	int destID = dataPacket.getDestID();
+	try {
+	    if (destID != localNodeID) {
+		relayDataPacket(dataPacket);
+	    } else {
+		receiveDataPacket(dataPacket);
+	    }
+	} catch (IOException ioe) {
+	    System.out.println(ioe.getMessage());
+	}
     }
     
     private void initiateConnections(ArrayList<RoutingEntry> nodesToConnect) {
@@ -143,6 +169,60 @@ public class MessagingProtocol {
 	} catch (IOException ioe) {
 	    System.out.println(ioe.getMessage());
 	}
+    }
+
+    private void sendDataPacket() throws IOException {
+	int sinkNodeID = chooseRandomSink();
+	TCPConnection linkConnection = chooseSendingLink(sinkNodeID);
+	int payload = generatePayload();
+	OverlayNodeSendsData dataPacket = new OverlayNodeSendsData(sinkNodeID, localNodeID, payload);
+	byte[] dataPacketMessage = dataPacket.getBytes();
+	linkConnection.sendMessage(dataPacketMessage);
+	synchronized(this) {
+	    this.sendTracker++;
+	    this.sendSummation += payload;
+	}
+    }
+
+    private int chooseRandomSink() {
+	ArrayList<Integer> allNodeIDs = routingTable.getListIDs();
+	int randomID = -1;
+	while(randomID < 0) {
+	    randomID = allNodeIDs.get(ThreadLocalRandom.current().nextInt(allNodeIDs.size()));
+	    if (randomID == localNodeID)
+		randomID = -1;
+	    else
+		return randomID;
+	}
+	return randomID;
+    }
+
+    private TCPConnection chooseSendingLink(int sinkNodeID) {
+	// decide about where to send packet
+	TCPConnection connection = null;
+	for (RoutingEntry entry : routingTable.getConnectedNodes()) {
+	    int entryID = entry.getNodeID();
+	    if (entryID == sinkNodeID) { // sink is in routing table
+		return connectionCache.getConnection(sinkNodeID);
+	    } else if (entryID < sinkNodeID) { // entry is before sink node
+		connection = connectionCache.getConnection(entryID);
+	    } else { // entry is past sink node
+		// do nothing, this would overshoot sink node
+	    }
+	}
+	return connection;
+    }
+
+    private int generatePayload() {
+	return ThreadLocalRandom.current().nextInt(-2147483648, 2147483647);
+    }
+    
+    private void relayDataPacket(OverlayNodeSendsData dataPacket) throws IOException {
+
+    }
+
+    private void receiveDataPacket(OverlayNodeSendsData dataPacket) throws IOException {
+
     }
     
 }
