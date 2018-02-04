@@ -18,6 +18,7 @@ public class OverlayNodeSendsData implements Event {
 	srcID = din.readInt();
 	payload = din.readInt();
 	disseminationTraceLength = din.readInt();
+	disseminationTrace = new ArrayList<Integer>();
 	for (int i=0; i<disseminationTraceLength; i++) {
 	    disseminationTrace.add(din.readInt());
 	}
@@ -30,6 +31,16 @@ public class OverlayNodeSendsData implements Event {
 	this.payload = payload;
 	disseminationTraceLength = 0;
 	disseminationTrace = new ArrayList<Integer>();
+    }
+
+    public OverlayNodeSendsData(int destID, int srcID, int payload,
+				ArrayList<Integer> disseminationTrace) {
+	// for relaying
+	this.destID = destID;
+	this.srcID = srcID;
+	this.payload = payload;
+	this.disseminationTrace = disseminationTrace;
+	disseminationTraceLength = disseminationTrace.size();
     }
     
     public int getType() {
@@ -47,18 +58,9 @@ public class OverlayNodeSendsData implements Event {
     public int getPayload() {
 	return payload;
     }
-
-    public byte[] addTraversed(int nodeID) throws IOException {
-	disseminationTrace.add(nodeID);
-	return getBytes();
-    }
     
-    public int[] getDisseminationTrace() {
-	int[] dissTrace = new int[disseminationTraceLength];
-	for (int i=0; i<disseminationTraceLength; i++) {
-	    dissTrace[i] = disseminationTrace.get(i);
-	}
-	return dissTrace;
+    public ArrayList<Integer> getDisseminationTrace() {
+	return disseminationTrace;
     }
 
     public byte[] getBytes() throws IOException {
@@ -70,7 +72,7 @@ public class OverlayNodeSendsData implements Event {
 	dout.writeInt(destID);
 	dout.writeInt(srcID);
 	dout.writeInt(payload);
-	dout.writeInt(disseminationTrace.size());
+	dout.writeInt(disseminationTraceLength);
 
 	for (int nodeID : disseminationTrace) {
 	    dout.writeInt(nodeID);

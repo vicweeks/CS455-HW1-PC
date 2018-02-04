@@ -32,7 +32,7 @@ public class MessagingProtocol {
 
     // Command: print-counters-and-diagnostics
     public void printDiagnostics() {
-        System.out.printf("|%12s|    |%16s|    |%15s|    |%19s|    |%19s|\n",
+	System.out.printf("|%12s|    |%16s|    |%15s|    |%19s|    |%19s|\n",
 			  "Packets Sent", "Packets Received", "Packets Relayed",
 			  "Sum Values Sent", "Sum Values Received");
 	System.out.printf("|%,12d|    |%,16d|    |%,15d|    |%+,19d|    |%+,19d|\n",
@@ -83,10 +83,6 @@ public class MessagingProtocol {
 	String infoString = registrationResponse.getInfo();
 
 	System.out.println(infoString);
-	//debug
-	System.out.println("I have ID " + localNodeID + " IP Address "
-			   + localIPAddress + " and Port Number "
-			   + localPortNumber);
     }
 
     // Message Type 5
@@ -150,6 +146,7 @@ public class MessagingProtocol {
 		nodeToConnectID = entry.getNodeID();		
 		Socket socket = new Socket(entry.getIPAddress(), entry.getPortNumber());
 		TCPConnection routingConnection = new TCPConnection(self, socket);
+		routingConnection.setUpConnection(routingConnection);
 		connectionCache.addConnection(nodeToConnectID, routingConnection);
 	    }
 	} catch (UnknownHostException uhe) {
@@ -179,24 +176,17 @@ public class MessagingProtocol {
     }
 
     private void sendDataPacket() throws IOException {
-	int sinkNodeID = chooseRandomSink();
-
-	System.out.println("Sink ID " + sinkNodeID);
-	
+	int sinkNodeID = chooseRandomSink();	
 	TCPConnection linkConnection = chooseSendingLink(sinkNodeID);
 	int payload = generatePayload();
 	OverlayNodeSendsData dataPacket = new OverlayNodeSendsData(sinkNodeID, localNodeID, payload);
-	byte[] dataPacketMessage = dataPacket.getBytes();
+	byte[] dataPacketMessage = dataPacket.getBytes();	
 	
 	synchronized(this) {
 	    linkConnection.sendMessage(dataPacketMessage);
 	    this.sendTracker++;
 	    this.sendSummation += payload;
 	}
-
-	//Debug
-	System.out.println("Node " + localNodeID + " sent payload " + payload
-			   + " to node " + sinkNodeID);
     }
 
     private int chooseRandomSink() {
@@ -228,11 +218,6 @@ public class MessagingProtocol {
 		// do nothing, this would overshoot sink node
 	    }
 	}
-
-	
-	System.out.println("Next ID " + entryID + " IP Address "
-			   + connection.getRemoteIP() + " PortNumber "
-			   + connection.getRemotePort());
 	return connection;
     }
 
@@ -241,7 +226,12 @@ public class MessagingProtocol {
     }
     
     private void relayDataPacket(OverlayNodeSendsData dataPacket) throws IOException {
-	byte[] relayDataPacket = dataPacket.addTraversed(localNodeID);
+	ArrayList<Integer> dissTrace = dataPacket.getDisseminationTrace();
+	dissTrace.add(localNodeID);
+	OverlayNodeSendsData relayData =
+	    new OverlayNodeSendsData(dataPacket.getDestID(), dataPacket.getSrcID(),
+				     dataPacket.getPayload(), dissTrace);
+	byte[] relayDataPacket = relayData.getBytes();
 	int destID = dataPacket.getDestID();
 	TCPConnection linkConnection = chooseSendingLink(destID);
 	
@@ -249,31 +239,16 @@ public class MessagingProtocol {
 	    linkConnection.sendMessage(relayDataPacket);
 	    this.relayTracker++;
 	}
-
-	//Debug
-	System.out.println("Node " + localNodeID + " relayed packet to node " + destID);
     }
 
     private void receiveDataPacket(OverlayNodeSendsData dataPacket) throws IOException {
-	
 	int srcID = dataPacket.getSrcID();
 	int payload = dataPacket.getPayload();
 
 	synchronized(this) {
 	    this.receiveTracker++;
 	    this.receiveSummation += payload;
-	}
-	
-	//Debug
-	int[] dissTrace = dataPacket.getDisseminationTrace();
-	System.out.println("Node " + localNodeID + " received payload " + payload
-			   + " from node " + srcID);
-	System.out.println("Packet traversed through nodes:");
-	for (int i=0; i<dissTrace.length; i++) {
-	    System.out.print("Node " + dissTrace[i] + "   ");
-	}
-	System.out.println("\n");
-	//END Debug	
+	}	
     }
     
 }
