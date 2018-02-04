@@ -68,7 +68,7 @@ public class MessagingProtocol {
 		break;
 	    case 9: onReceivedData(connection, event);
 		break;
-	    case 11:
+	    case 11: onReceivedTrafficSummaryRequest(connection, event);
 		break;
 	    default: System.out.println("Error in MessagingProtocol: message type " + eventType + " is invalid.");
 		System.exit(1);
@@ -117,11 +117,10 @@ public class MessagingProtocol {
 	    for (int i=0; i<numPacketsToSend; i++) {
 		sendDataPacket();
 	    }
+	    reportTaskFinished();
 	} catch (IOException ioe) {
 	    System.out.println(ioe.getMessage());
-	}
-	System.out.println("Finished all rounds!");
-	//TODO OverlayNodeReportsTaskFinished
+	}	
     }
 
     // Message Type 9
@@ -137,6 +136,11 @@ public class MessagingProtocol {
 	} catch (IOException ioe) {
 	    System.out.println(ioe.getMessage());
 	}
+    }
+
+    // Message Type 11
+    private void onReceivedTrafficSummaryRequest(TCPConnection connection, Event event) {
+	System.out.println("Received Request for Traffic Summary Report");
     }
     
     private void initiateConnections(ArrayList<RoutingEntry> nodesToConnect) {
@@ -177,6 +181,14 @@ public class MessagingProtocol {
 	}
     }
 
+    private void reportTaskFinished() throws IOException {
+	TCPConnection connection = connectionCache.getConnection(-1);
+	OverlayNodeReportsTaskFinished reportTaskFinished =
+	    new OverlayNodeReportsTaskFinished(localIPAddress, localPortNumber, localNodeID);
+	byte[] reportTaskFinishedMessage = reportTaskFinished.getBytes();
+	connection.sendMessage(reportTaskFinishedMessage);
+    }
+    
     private void sendDataPacket() throws IOException {
 	int sinkNodeID = chooseRandomSink();	
 	TCPConnection linkConnection = chooseSendingLink(sinkNodeID);

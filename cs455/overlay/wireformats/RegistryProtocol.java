@@ -15,11 +15,13 @@ public class RegistryProtocol {
     private TCPConnectionsCache connectionCache;
     private ArrayList<RoutingTable> allRoutingTables;
     private int readyNodes;
+    private int finishedNodes;
     private SortedMap<Integer, RoutingEntry> sortedEntries;
     
     public RegistryProtocol() {
 	connectionCache = new TCPConnectionsCache();
 	readyNodes = 0;
+	finishedNodes = 0;
 	sortedEntries = new TreeMap<Integer, RoutingEntry>();
     }
 
@@ -98,9 +100,9 @@ public class RegistryProtocol {
 		break;
 	    case 7: onReceivedSetupStatus(connection, event);
 		break;
-	    case 10:
+	    case 10: onReceivedTaskFinishedReport(connection, event);
 		break;
-	    case 12:
+	    case 12: onReceivedTrafficSummary(connection, event);
 		break;
 	    default: System.out.println("Error in RegistryProtocol: message type " + eventType + " is invalid.");
 		System.exit(1);
@@ -192,6 +194,20 @@ public class RegistryProtocol {
 		System.out.println("Registry is now ready to initiate tasks.");
 	}
     }
+
+    // Message Type 10
+    private void onReceivedTaskFinishedReport(TCPConnection connection, Event event) {
+	OverlayNodeReportsTaskFinished taskFinishedReport = (OverlayNodeReportsTaskFinished) event;
+	finishedNodes++;
+	if (finishedNodes == sortedEntries.size()) {
+	    requestTrafficSummary();
+	}
+    }
+
+    // Message Type 12
+    private void onReceivedTrafficSummary(TCPConnection connection, Event event) {
+	
+    }
     
     private String checkForRegistrationError(TCPConnection connection,
 					     InetAddress ipAddress, int portNumber) {
@@ -264,5 +280,19 @@ public class RegistryProtocol {
 	    System.out.println("Error removing node: node is not currently registered.");
 	}
     }
-    
+
+    private void requestTrafficSummary() {
+	try {
+	    RegistryRequestsTrafficSummary requestTrafficSummary =
+		new RegistryRequestsTrafficSummary();
+	    byte[] requestTrafficSummaryMessage = requestTrafficSummary.getBytes();
+	    for (TCPConnection connection : connectionCache.getConnectionList()) {
+		connection.sendMessage(requestTrafficSummaryMessage);
+		//Debug
+		//System.out.println("Sent traffic summary request");
+	    }
+	} catch (IOException ioe) {
+	    System.out.println(ioe.getMessage());
+	}
+    }
 }
