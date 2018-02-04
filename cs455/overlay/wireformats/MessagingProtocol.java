@@ -29,7 +29,7 @@ public class MessagingProtocol {
 	connectionCache = new TCPConnectionsCache();
 	connectionCache.addConnection(-1, registryConnection);
     }
-
+    
     // Command: print-counters-and-diagnostics
     public void printDiagnostics() {
 	System.out.printf("|%12s|    |%16s|    |%15s|    |%19s|    |%19s|\n",
@@ -120,6 +120,8 @@ public class MessagingProtocol {
 	} catch (IOException ioe) {
 	    System.out.println(ioe.getMessage());
 	}
+	System.out.println("Finished all rounds!");
+	//TODO OverlayNodeReportsTaskFinished
     }
 
     // Message Type 9
@@ -186,7 +188,7 @@ public class MessagingProtocol {
 	    linkConnection.sendMessage(dataPacketMessage);
 	    this.sendTracker++;
 	    this.sendSummation += payload;
-	}
+	}	
     }
 
     private int chooseRandomSink() {
@@ -205,22 +207,37 @@ public class MessagingProtocol {
     private TCPConnection chooseSendingLink(int sinkNodeID) {
 	// decide about where to send packet
 	TCPConnection connection = null;
-	int entryID = -1;
+	int targetDist = getDistBetweenNodes(localNodeID, sinkNodeID);
+
 	for (RoutingEntry entry : routingTable.getConnectedNodes()) {
-	    entryID = entry.getNodeID();
+	    int entryID = entry.getNodeID();      
 	    if (entryID == sinkNodeID) { // sink is in routing table
 		connection = connectionCache.getConnection(sinkNodeID);
 		return connection;
-	    } else if (entryID < sinkNodeID) { // entry is before sink node
-		connection = connectionCache.getConnection(entryID);
-
-	    } else { // entry is past sink node
-		// do nothing, this would overshoot sink node
+	    } else {
+		int entryDist = getDistBetweenNodes(entryID, sinkNodeID);
+		if (entryDist < targetDist) { // entry is before sink node
+		    connection = connectionCache.getConnection(entryID);
+		} else {
+		    // do nothing, this would overshoot sink node
+		}
 	    }
 	}
+	
 	return connection;
     }
 
+    private int getDistBetweenNodes(int srcID, int destID) {
+	ArrayList<Integer> allNodeIDs = routingTable.getListIDs();
+	int numNodes = allNodeIDs.size();
+	int srcIndex = allNodeIDs.indexOf(srcID);
+	int destIndex = allNodeIDs.indexOf(destID);
+	int distBetween = destIndex - srcIndex;
+	if (distBetween < 0)
+	    distBetween += numNodes;
+	return distBetween;
+    }
+    
     private int generatePayload() {
 	return ThreadLocalRandom.current().nextInt(-2147483648, 2147483647);
     }
@@ -238,7 +255,7 @@ public class MessagingProtocol {
 	synchronized(this) {
 	    linkConnection.sendMessage(relayDataPacket);
 	    this.relayTracker++;
-	}
+	}	
     }
 
     private void receiveDataPacket(OverlayNodeSendsData dataPacket) throws IOException {
@@ -248,7 +265,7 @@ public class MessagingProtocol {
 	synchronized(this) {
 	    this.receiveTracker++;
 	    this.receiveSummation += payload;
-	}	
+	}
     }
     
 }
