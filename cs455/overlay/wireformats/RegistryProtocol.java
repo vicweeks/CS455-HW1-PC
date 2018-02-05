@@ -17,6 +17,7 @@ public class RegistryProtocol {
     private int readyNodes;
     private int finishedNodes;
     private SortedMap<Integer, RoutingEntry> sortedEntries;
+    private TrafficSummary summary;
     
     public RegistryProtocol() {
 	connectionCache = new TCPConnectionsCache();
@@ -199,14 +200,28 @@ public class RegistryProtocol {
     private void onReceivedTaskFinishedReport(TCPConnection connection, Event event) {
 	OverlayNodeReportsTaskFinished taskFinishedReport = (OverlayNodeReportsTaskFinished) event;
 	finishedNodes++;
+	System.out.println("Node " + taskFinishedReport.getNodeID() + " finished task.");
 	if (finishedNodes == sortedEntries.size()) {
+	    //TODO receiving summary before nodes receive all packets
 	    requestTrafficSummary();
 	}
     }
 
     // Message Type 12
     private void onReceivedTrafficSummary(TCPConnection connection, Event event) {
-	
+	OverlayNodeReportsTrafficSummary trafficSummary = (OverlayNodeReportsTrafficSummary) event;
+	int nodeID = trafficSummary.getNodeID();
+	int sent = trafficSummary.getTotalSent();
+	int received = trafficSummary.getTotalReceived();
+	int relayed = trafficSummary.getTotalRelayed();
+	long sumSent = trafficSummary.getSumSent();
+	long sumReceived = trafficSummary.getSumReceived();
+
+	synchronized(this) {
+	    summary.addInstance(nodeID, sent, received, relayed, sumSent, sumReceived);
+	    if (summary.getNumInstances() == sortedEntries.size())
+		summary.printTrafficSummary();
+	}
     }
     
     private String checkForRegistrationError(TCPConnection connection,
@@ -230,7 +245,6 @@ public class RegistryProtocol {
 
     private String checkForDeregistrationError(TCPConnection connection, InetAddress ipAddress,
 					       int portNumber, int nodeID) {
-	
 	// check if previously registered
 	if (!sortedEntries.containsKey(nodeID)) {
 	    return "Error Deregistering Node: Node " + nodeID + " not previously registered.";
@@ -241,7 +255,6 @@ public class RegistryProtocol {
 	    return "Error Registering Node: Originating IP address does not match IP address in message.";
 	}
 	return "";
-       	
     }
     
     private int generateNodeID() {
@@ -282,14 +295,13 @@ public class RegistryProtocol {
     }
 
     private void requestTrafficSummary() {
+	summary = new TrafficSummary();
 	try {
 	    RegistryRequestsTrafficSummary requestTrafficSummary =
 		new RegistryRequestsTrafficSummary();
 	    byte[] requestTrafficSummaryMessage = requestTrafficSummary.getBytes();
 	    for (TCPConnection connection : connectionCache.getConnectionList()) {
 		connection.sendMessage(requestTrafficSummaryMessage);
-		//Debug
-		//System.out.println("Sent traffic summary request");
 	    }
 	} catch (IOException ioe) {
 	    System.out.println(ioe.getMessage());

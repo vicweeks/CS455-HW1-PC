@@ -140,7 +140,24 @@ public class MessagingProtocol {
 
     // Message Type 11
     private void onReceivedTrafficSummaryRequest(TCPConnection connection, Event event) {
-	System.out.println("Received Request for Traffic Summary Report");
+        try {
+	    OverlayNodeReportsTrafficSummary trafficSummary =
+		new OverlayNodeReportsTrafficSummary(localNodeID, sendTracker, relayTracker,
+						     sendSummation, receiveTracker, receiveSummation);
+	    byte[] trafficSummaryMessage = trafficSummary.getBytes();
+	    connection.sendMessage(trafficSummaryMessage);
+	} catch (IOException ioe) {
+	    System.out.println(ioe.getMessage());
+	}
+	//resetTrafficCounters();
+    }
+
+    private void resetTrafficCounters() {
+	this.sendTracker = 0;
+	this.relayTracker = 0;
+	this.receiveTracker = 0;
+	this.sendSummation = 0L;
+	this.receiveSummation = 0L;
     }
     
     private void initiateConnections(ArrayList<RoutingEntry> nodesToConnect) {

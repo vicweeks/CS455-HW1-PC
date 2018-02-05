@@ -32,8 +32,10 @@ public class TCPReceiver implements Runnable {
 		EventFactory eventFactory = EventFactory.getInstance();
 		Event receivedEvent = eventFactory.constructEvent(data);
 
-		EventThread eventThread = new EventThread(node, self, receivedEvent);
-		eventThread.start();
+		// May need to remove this since it doesn't help
+		//EventThread eventThread = new EventThread(node, self, receivedEvent);
+		//eventThread.start();
+		node.onEvent(self, receivedEvent);
 		
 	    } catch (SocketException se) {
 		System.out.println(se.getMessage());
