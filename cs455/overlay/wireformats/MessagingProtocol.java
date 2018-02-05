@@ -98,6 +98,7 @@ public class MessagingProtocol {
     // Message Type 6
     private void onReceivedNodeManifest(TCPConnection connection, Event event) {
 	RegistrySendsNodeManifest nodeManifest = (RegistrySendsNodeManifest) event;
+	System.out.printf("Node %d received routing table.\n", localNodeID);
 	int routingTableSize = nodeManifest.getRoutingTableSize();
 	ArrayList<RoutingEntry> nodesToConnect = nodeManifest.getRoutingNodes();
 	int numNodeIDs = nodeManifest.getNumNodes();
@@ -140,7 +141,7 @@ public class MessagingProtocol {
 
     // Message Type 11
     private void onReceivedTrafficSummaryRequest(TCPConnection connection, Event event) {
-        try {
+	try {
 	    OverlayNodeReportsTrafficSummary trafficSummary =
 		new OverlayNodeReportsTrafficSummary(localNodeID, sendTracker, relayTracker,
 						     sendSummation, receiveTracker, receiveSummation);
@@ -149,7 +150,7 @@ public class MessagingProtocol {
 	} catch (IOException ioe) {
 	    System.out.println(ioe.getMessage());
 	}
-	//resetTrafficCounters();
+	resetTrafficCounters();
     }
 
     private void resetTrafficCounters() {

@@ -41,6 +41,8 @@ public class RegistryProtocol {
 
     // command: setup-overlay number-of-routing-table-entries
     public void setupOverlay(int numRoutingTableEntries) {
+	readyNodes = 0;
+	System.out.println("Setting up overlay...");
 	OverlaySetup setup = new OverlaySetup(sortedEntries, numRoutingTableEntries);
 	allRoutingTables = setup.getAllTables();
 	try {
@@ -190,7 +192,9 @@ public class RegistryProtocol {
 	if (status == -1) {
 	    System.out.println(setupStatus.getInfo());
 	} else {
-	    readyNodes++;
+	    synchronized(this) {
+		readyNodes++;
+	    }
 	    if (readyNodes == sortedEntries.size())
 		System.out.println("Registry is now ready to initiate tasks.");
 	}
@@ -199,10 +203,12 @@ public class RegistryProtocol {
     // Message Type 10
     private void onReceivedTaskFinishedReport(TCPConnection connection, Event event) {
 	OverlayNodeReportsTaskFinished taskFinishedReport = (OverlayNodeReportsTaskFinished) event;
-	finishedNodes++;
-	System.out.println("Node " + taskFinishedReport.getNodeID() + " finished task.");
+	synchronized(this) {
+	    finishedNodes++;
+	}
 	if (finishedNodes == sortedEntries.size()) {
-	    //TODO receiving summary before nodes receive all packets
+	    System.out.println("Waiting for all traffic to be received...");
+	    waitForNodes();
 	    requestTrafficSummary();
 	}
     }
@@ -219,10 +225,24 @@ public class RegistryProtocol {
 
 	synchronized(this) {
 	    summary.addInstance(nodeID, sent, received, relayed, sumSent, sumReceived);
-	    if (summary.getNumInstances() == sortedEntries.size())
+	    if (summary.getNumInstances() == sortedEntries.size()) {
 		summary.printTrafficSummary();
+		finishedNodes = 0;
+	    }
 	}
     }
+
+    private void waitForNodes() {
+	try {
+	    for(int i=15; i>0; i--) {
+		System.out.printf("%4d..", i);
+		Thread.sleep(1000);
+	    }
+	    System.out.print("\n");
+	} catch (InterruptedException ie) {
+	    System.out.println(ie.getMessage());
+	}
+    }    
     
     private String checkForRegistrationError(TCPConnection connection,
 					     InetAddress ipAddress, int portNumber) {
