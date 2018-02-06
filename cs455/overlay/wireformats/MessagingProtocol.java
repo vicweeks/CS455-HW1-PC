@@ -124,11 +124,12 @@ public class MessagingProtocol {
 	    reportTaskFinished();
 	} catch (IOException ioe) {
 	    System.out.println(ioe.getMessage());
-	}	
+	}
+	
     }
 
     // Message Type 9
-    private void onReceivedData(TCPConnection connection, Event event) {
+    private synchronized void onReceivedData(TCPConnection connection, Event event) {
 	OverlayNodeSendsData dataPacket = (OverlayNodeSendsData) event;
 	int destID = dataPacket.getDestID();
 	try {
@@ -220,7 +221,6 @@ public class MessagingProtocol {
 	linkConnection.sendMessage(dataPacketMessage);
 	
 	synchronized(this) {
-	    //linkConnection.sendMessage(dataPacketMessage);
 	    this.sendTracker++;
 	    this.sendSummation += payload;
 	}	
@@ -285,7 +285,6 @@ public class MessagingProtocol {
 	linkConnection.sendMessage(relayDataPacket);
 
 	synchronized(this) {
-	    //linkConnection.sendMessage(relayDataPacket);
 	    this.relayTracker++;
 	}	
     }

@@ -33,6 +33,11 @@ public class RegistryProtocol {
 	return connectionCache;
     }
 
+    // command reset-task
+    public void resetTask() {
+	requestTrafficSummary();
+    }
+
     // command list-messaging-nodes
     public void listMessagingNodes() {
 	for (RoutingEntry entry : sortedEntries.values()) {

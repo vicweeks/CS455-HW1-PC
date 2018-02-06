@@ -32,10 +32,8 @@ public class TCPReceiver implements Runnable {
 		byte[] data = new byte[dataLength];
 		din.readFully(data, 0, dataLength);
 		Event receivedEvent = eventFactory.constructEvent(data);
-
-		synchronized(node) {
-		    node.onEvent(self, receivedEvent);
-		}
+      
+		node.onEvent(self, receivedEvent);
 	     		    
 	    } catch (SocketException se) {
 		System.out.println(se.getMessage());
