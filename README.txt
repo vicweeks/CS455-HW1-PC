@@ -2,6 +2,18 @@ CS455 HW1-PC
 Victor Weeks
 January 19, 2018
 
+Usage:
+	* Create one registry with the command ```java cs455.overlay.node.Registry <portnum>``` where <portnum> is the desired port for the ServerSocket.
+	* Create multiple instances of messaging nodes with ```java cs455.overlay.node.MessagingNode <registry-host> <registry-port>``` where <registry-host> is the name of the host on which the registry resides and <registry-port> is the corresponding port number chosen for the registry in the previous command.
+	* After all messaging nodes have register with the registry (happens upon startup of each messaging node), the registry will accept a number of running commands:
+	  * ```list-messaging-nodes``` will print information (hostname, port-number, nodeID) about each messaging node currently registered to the console.
+	  * ```setup-overlay <number-of-routing-table-entries>``` will setup the overlay with the indicated number of entries and send that information to the corresponding messaging node. Upon completion the registry will print that it is ready to initiate tasks.
+	  * ```list-routing-tables``` when this command is invoked after overlay setup, it will print the individual routing table for each messaging node to the console.
+	  * ```start <number-of-messages>``` will request each messaging node to send the indicated number of messages to a randomly chosen node (excluding itself). Each node will determine the path for each individual packet to reach the indicated sink node.
+	* Messaging nodes will also accept the following running commands:
+	  * ```print-counters-and-diagnostics``` will cause the particular node to print information about traffic at the time of the command to the console. This info will indicate the number of messages the node has sent, received, and relayed, as well as the sums of the messages sent and received.
+	  * ```exit-overlay``` This command is intended to be called *before* overlay setup. It will cause the particular node to request deregistration from the registry, close any open sockets, and terminate the process.
+
 Class Descriptions:
 
 node
