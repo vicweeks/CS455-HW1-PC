@@ -1,8 +1,8 @@
 package cs455.overlay.transport;
 
-import cs455.overlay.wireformats.*;
-import java.net.*;
-import java.io.*;
+import java.net.Socket;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 public class TCPSender {
 

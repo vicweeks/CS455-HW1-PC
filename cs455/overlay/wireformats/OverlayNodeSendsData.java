@@ -1,7 +1,11 @@
 package cs455.overlay.wireformats;
 
 import java.util.ArrayList;
-import java.io.*;
+import java.io.IOException;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.BufferedOutputStream;
 
 public class OverlayNodeSendsData implements Event {
 

@@ -1,10 +1,15 @@
 package cs455.overlay.node;
 
-import cs455.overlay.wireformats.*;
-import cs455.overlay.transport.*;
-import cs455.overlay.util.*;
-import java.net.*;
-import java.io.*;
+import cs455.overlay.wireformats.Event;
+import cs455.overlay.wireformats.MessagingProtocol;
+import cs455.overlay.wireformats.OverlayNodeSendsRegistration;
+import cs455.overlay.transport.TCPServerThread;
+import cs455.overlay.transport.TCPConnection;
+import cs455.overlay.util.InteractiveCommandParser;
+import java.net.Socket;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.io.IOException;
 
 public class MessagingNode implements Node {
 

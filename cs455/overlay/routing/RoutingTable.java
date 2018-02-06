@@ -1,7 +1,6 @@
 package cs455.overlay.routing;
 
 import java.util.ArrayList;
-import java.net.*;
 
 public class RoutingTable {
 

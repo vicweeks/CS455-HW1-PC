@@ -1,6 +1,6 @@
 package cs455.overlay.routing;
 
-import java.net.*;
+import java.net.InetAddress;
 
 public class RoutingEntry {
 

@@ -1,9 +1,12 @@
 package cs455.overlay.transport;
 
-import cs455.overlay.wireformats.*;
-import cs455.overlay.node.*;
-import java.net.*;
-import java.io.*;
+import cs455.overlay.wireformats.EventFactory;
+import cs455.overlay.wireformats.Event;
+import cs455.overlay.node.Node;
+import java.net.Socket;
+import java.net.SocketException;
+import java.io.DataInputStream;
+import java.io.IOException;
 
 public class TCPReceiver implements Runnable {
 

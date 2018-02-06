@@ -1,15 +1,17 @@
 package cs455.overlay.wireformats;
 
 import cs455.overlay.routing.*;
-import cs455.overlay.transport.*;
+import cs455.overlay.transport.TCPConnection;
+import cs455.overlay.transport.TCPConnectionsCache;
 import cs455.overlay.util.StatisticsCollectorAndDisplay;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ThreadLocalRandom;
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 public class RegistryProtocol {
 

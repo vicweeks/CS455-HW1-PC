@@ -1,7 +1,12 @@
 package cs455.overlay.wireformats;
 
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.BufferedOutputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 public class OverlayNodeReportsTaskFinished implements Event {
 

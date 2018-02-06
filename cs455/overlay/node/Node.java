@@ -1,7 +1,7 @@
 package cs455.overlay.node;
 
-import cs455.overlay.wireformats.*;
-import cs455.overlay.transport.*;
+import cs455.overlay.wireformats.Event;
+import cs455.overlay.transport.TCPConnection;
 
 public interface Node {
     

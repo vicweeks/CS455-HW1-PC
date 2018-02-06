@@ -1,13 +1,12 @@
 package cs455.overlay.wireformats;
 
 import cs455.overlay.routing.*;
-import cs455.overlay.transport.*;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.net.UnknownHostException;
 
 public class OverlaySetup {
 
