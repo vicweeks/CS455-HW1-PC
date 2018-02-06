@@ -2,7 +2,6 @@ package cs455.overlay.transport;
 
 import cs455.overlay.wireformats.*;
 import cs455.overlay.node.*;
-import cs455.overlay.util.EventThread;
 import java.net.*;
 import java.io.*;
 
@@ -12,31 +11,29 @@ public class TCPReceiver implements Runnable {
     private TCPConnection self;
     private Socket socket;
     private DataInputStream din;
+    private static EventFactory eventFactory;
 
     public TCPReceiver(Node node, TCPConnection self, Socket socket) throws IOException {
 	this.node = node;
 	this.self = self;
 	this.socket = socket;
 	din = new DataInputStream(socket.getInputStream());
+	eventFactory = EventFactory.getInstance();
     }
     
     public void run() {
 	int dataLength;
 	while (!Thread.currentThread().isInterrupted()) {
-	    try {        
+	    try {
 		dataLength = din.readInt();
-		
 		byte[] data = new byte[dataLength];
 		din.readFully(data, 0, dataLength);
-
-		EventFactory eventFactory = EventFactory.getInstance();
 		Event receivedEvent = eventFactory.constructEvent(data);
 
-		// May need to remove this since it doesn't help
-		//EventThread eventThread = new EventThread(node, self, receivedEvent);
-		//eventThread.start();
-		node.onEvent(self, receivedEvent);
-		
+		synchronized(node) {
+		    node.onEvent(self, receivedEvent);
+		}
+	     		    
 	    } catch (SocketException se) {
 		System.out.println(se.getMessage());
 		break;

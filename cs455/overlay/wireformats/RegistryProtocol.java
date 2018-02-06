@@ -2,6 +2,7 @@ package cs455.overlay.wireformats;
 
 import cs455.overlay.routing.*;
 import cs455.overlay.transport.*;
+import cs455.overlay.util.StatisticsCollectorAndDisplay;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.SortedMap;
@@ -17,7 +18,7 @@ public class RegistryProtocol {
     private int readyNodes;
     private int finishedNodes;
     private SortedMap<Integer, RoutingEntry> sortedEntries;
-    private TrafficSummary summary;
+    private StatisticsCollectorAndDisplay summary;
     
     public RegistryProtocol() {
 	connectionCache = new TCPConnectionsCache();
@@ -315,7 +316,7 @@ public class RegistryProtocol {
     }
 
     private void requestTrafficSummary() {
-	summary = new TrafficSummary();
+	summary = new StatisticsCollectorAndDisplay();
 	try {
 	    RegistryRequestsTrafficSummary requestTrafficSummary =
 		new RegistryRequestsTrafficSummary();

@@ -33,14 +33,10 @@ public class OverlayNodeSendsData implements Event {
 	disseminationTrace = new ArrayList<Integer>();
     }
 
-    public OverlayNodeSendsData(int destID, int srcID, int payload,
-				ArrayList<Integer> disseminationTrace) {
-	// for relaying
-	this.destID = destID;
-	this.srcID = srcID;
-	this.payload = payload;
-	this.disseminationTrace = disseminationTrace;
+    public byte[] addRelayNode(int nodeID) throws IOException {
+	this.disseminationTrace.add(nodeID);
 	disseminationTraceLength = disseminationTrace.size();
+	return getBytes();
     }
     
     public int getType() {

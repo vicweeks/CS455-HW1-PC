@@ -213,9 +213,11 @@ public class MessagingProtocol {
 	int payload = generatePayload();
 	OverlayNodeSendsData dataPacket = new OverlayNodeSendsData(sinkNodeID, localNodeID, payload);
 	byte[] dataPacketMessage = dataPacket.getBytes();	
+
+	linkConnection.sendMessage(dataPacketMessage);
 	
 	synchronized(this) {
-	    linkConnection.sendMessage(dataPacketMessage);
+	    //linkConnection.sendMessage(dataPacketMessage);
 	    this.sendTracker++;
 	    this.sendSummation += payload;
 	}	
@@ -238,8 +240,8 @@ public class MessagingProtocol {
 	// decide about where to send packet
 	TCPConnection connection = null;
 	int targetDist = getDistBetweenNodes(localNodeID, sinkNodeID);
-
-	for (RoutingEntry entry : routingTable.getConnectedNodes()) {
+	ArrayList<RoutingEntry> routingEntries = routingTable.getConnectedNodes();
+	for (RoutingEntry entry : routingEntries) {
 	    int entryID = entry.getNodeID();      
 	    if (entryID == sinkNodeID) { // sink is in routing table
 		connection = connectionCache.getConnection(sinkNodeID);
@@ -273,17 +275,14 @@ public class MessagingProtocol {
     }
     
     private void relayDataPacket(OverlayNodeSendsData dataPacket) throws IOException {
-	ArrayList<Integer> dissTrace = dataPacket.getDisseminationTrace();
-	dissTrace.add(localNodeID);
-	OverlayNodeSendsData relayData =
-	    new OverlayNodeSendsData(dataPacket.getDestID(), dataPacket.getSrcID(),
-				     dataPacket.getPayload(), dissTrace);
-	byte[] relayDataPacket = relayData.getBytes();
+	byte[] relayDataPacket = dataPacket.addRelayNode(localNodeID);
 	int destID = dataPacket.getDestID();
 	TCPConnection linkConnection = chooseSendingLink(destID);
-	
+
+	linkConnection.sendMessage(relayDataPacket);
+
 	synchronized(this) {
-	    linkConnection.sendMessage(relayDataPacket);
+	    //linkConnection.sendMessage(relayDataPacket);
 	    this.relayTracker++;
 	}	
     }
