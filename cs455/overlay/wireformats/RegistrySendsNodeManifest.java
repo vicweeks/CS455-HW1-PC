@@ -1,9 +1,14 @@
 package cs455.overlay.wireformats;
 
-import cs455.overlay.routing.*;
+import cs455.overlay.routing.RoutingEntry;
 import java.util.ArrayList;
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.BufferedOutputStream;
+import java.net.UnknownHostException;
+import java.net.InetAddress;
 
 public class RegistrySendsNodeManifest implements Event {
 

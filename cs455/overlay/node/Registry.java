@@ -1,10 +1,11 @@
 package cs455.overlay.node;
 
-import cs455.overlay.wireformats.*;
-import cs455.overlay.transport.*;
-import cs455.overlay.util.*;
-import java.net.*;
-import java.io.*;
+import cs455.overlay.wireformats.RegistryProtocol;
+import cs455.overlay.wireformats.Event;
+import cs455.overlay.transport.TCPServerThread;
+import cs455.overlay.transport.TCPConnection;
+import cs455.overlay.util.InteractiveCommandParser;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class Registry implements Node {

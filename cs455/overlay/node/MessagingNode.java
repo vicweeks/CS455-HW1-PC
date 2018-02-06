@@ -1,15 +1,24 @@
 package cs455.overlay.node;
 
-import cs455.overlay.wireformats.*;
-import cs455.overlay.transport.*;
-import cs455.overlay.util.*;
-import java.net.*;
-import java.io.*;
+import cs455.overlay.wireformats.Event;
+import cs455.overlay.wireformats.MessagingProtocol;
+import cs455.overlay.wireformats.OverlayNodeSendsRegistration;
+import cs455.overlay.transport.TCPServerThread;
+import cs455.overlay.transport.TCPConnection;
+import cs455.overlay.util.InteractiveCommandParser;
+import java.net.Socket;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.io.IOException;
 
 public class MessagingNode implements Node {
 
     private TCPConnection registryConnection;
     private MessagingProtocol protocol;
+    private InteractiveCommandParser icp;
+    private Thread icpThread;
+    private TCPServerThread server;
+    private Thread serverThread;
     
     public void onEvent(TCPConnection connection, Event event) {
 	protocol.onEvent(connection, event);
@@ -35,7 +44,7 @@ public class MessagingNode implements Node {
 	try { // register with Registry
 	    byte[] registerMessageBytes = m.createRegistrationMessage(localPortNumber);
 	    m.connectToRegistry(m, hostName, registryPortNumber);
-	    m.protocol = new MessagingProtocol(m, m.registryConnection);
+	    m.protocol = new MessagingProtocol(m, m.registryConnection, localPortNumber);
 	    m.registryConnection.sendMessage(registerMessageBytes);
 	} catch(UnknownHostException uhe) {
 	    System.out.println(uhe.getMessage());
@@ -44,14 +53,14 @@ public class MessagingNode implements Node {
 	}
 
 	m.runtimeCommands(m.protocol);
-	
+	return;
     }
 
     public int setUpServerThread(Node m) {
 	int portNumber = -1;
-	TCPServerThread server = new TCPServerThread(m, 0);
+        server = new TCPServerThread(m, 0);
 	portNumber = server.getPortNumber();
-	Thread serverThread = new Thread(server);
+	serverThread = new Thread(server);
 	serverThread.start();
 	System.out.println("Messaging Node has been started.");
 	return portNumber;
@@ -70,9 +79,21 @@ public class MessagingNode implements Node {
     }
 
     public void runtimeCommands(MessagingProtocol protocol) {
-	InteractiveCommandParser icp = new InteractiveCommandParser(false, protocol);
-	Thread icpThread = new Thread(icp);
+	icp = new InteractiveCommandParser(false, protocol);
+        icpThread = new Thread(icp);
 	icpThread.start();
+    }
+
+    public void close(TCPConnection connection) {
+	try {
+	    connection.close();
+	    server.close();
+	    serverThread.interrupt();
+	    icpThread.interrupt();
+	    System.out.println("Would you like to close this node? (y/n)");
+	} catch (IOException ioe) {
+	    System.out.println(ioe.getMessage());
+	}
     }
     
 }

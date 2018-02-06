@@ -1,8 +1,9 @@
 package cs455.overlay.transport;
 
-import cs455.overlay.node.*;
-import java.net.*;
-import java.io.*;
+import cs455.overlay.node.Node;
+import java.net.Socket;
+import java.net.ServerSocket;
+import java.io.IOException;
 
 public class TCPServerThread implements Runnable {
 
@@ -24,16 +25,20 @@ public class TCPServerThread implements Runnable {
     }
 
     public void run() {
-	while(serverSocket != null) {
+	while(!Thread.currentThread().isInterrupted()) {
 	    try {
 		Socket socket = serverSocket.accept();		
 		TCPConnection connection = new TCPConnection(node, socket);
 		connection.setUpConnection(connection);
-	    } catch (IOException e) {
-		System.out.println("Exception caught when setting up serverSocket on port.");
-		System.out.println(e.getMessage());
-	    }
+	    } catch (IOException ioe) {
+		System.out.println(ioe.getMessage());
+	    } 
 	}
+	return;
+    }
+
+    public void close() throws IOException {
+	serverSocket.close();
     }
 
 }

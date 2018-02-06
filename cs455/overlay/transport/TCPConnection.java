@@ -1,8 +1,10 @@
 package cs455.overlay.transport;
 
-import cs455.overlay.node.*;
-import java.net.*;
-import java.io.*;
+import cs455.overlay.node.Node;
+import java.net.Socket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.io.IOException;
 
 public class TCPConnection {
 
@@ -28,6 +30,10 @@ public class TCPConnection {
 	localPort = socket.getLocalPort();
     }
 
+    public void close() throws IOException {
+	receiverThread.interrupt();
+    }
+    
     public void setUpConnection(TCPConnection self) {
 	this.self = self;
 	try {
@@ -44,13 +50,8 @@ public class TCPConnection {
 	}
     }
     
-    public void sendMessage(byte[] dataToSend) {
-	try {
-	    sender.sendData(dataToSend);
-	} catch (IOException e) {
-	    System.out.println("Failed to send message");
-	    System.out.println(e.getMessage());
-	}
+    public void sendMessage(byte[] dataToSend) throws IOException {
+	sender.sendData(dataToSend);
     }
 
     public InetAddress getRemoteIP() {

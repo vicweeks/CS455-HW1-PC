@@ -2,7 +2,9 @@ package cs455.overlay.util;
 
 import cs455.overlay.wireformats.RegistryProtocol;
 import cs455.overlay.wireformats.MessagingProtocol;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.IOException;
 
 public class InteractiveCommandParser implements Runnable {
 
@@ -21,15 +23,17 @@ public class InteractiveCommandParser implements Runnable {
     }
 
     public void run() {
-	while(true) {
+	while(!Thread.currentThread().isInterrupted()) {
 	    try {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 		String input = reader.readLine();
-		parseCommand(input);
+		if (!input.equals("y"))
+		    parseCommand(input);
 	    } catch (IOException e) {
 		System.out.println("Error occured when parsing command");
 	    }
 	}
+	return;
     }
 
     private void parseCommand(String input) {
@@ -54,8 +58,13 @@ public class InteractiveCommandParser implements Runnable {
 	    rProtocol.listMessagingNodes();
 	} else if (command[0].equals("setup-overlay")) {
 	    // results in the registry setting up the overlay
-	    int numRoutingTableEntries = Integer.parseInt(command[1]);
-	    rProtocol.setupOverlay(numRoutingTableEntries);
+	    if (command.length != 2) {
+		System.out.println("Usage: setup-overlay {number-of-routing-table-entries}");
+		return;
+	    } else {
+		int numRoutingTableEntries = Integer.parseInt(command[1]);
+		rProtocol.setupOverlay(numRoutingTableEntries);
+	    }
 	} else if (command[0].equals("list-routing-tables")) {
 	    // lists informatin about the computed routing tables for each node in the overlay
 	    rProtocol.listRoutingTables();
